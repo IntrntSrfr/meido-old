@@ -1,7 +1,7 @@
 package services
 
 import (
-	"test/events"
+	"meido-test/events"
 
 	"github.com/bwmarrin/discordgo"
 )

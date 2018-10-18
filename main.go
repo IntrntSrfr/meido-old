@@ -8,7 +8,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"test/services"
+	"meido-test/services"
 )
 
 func main() {

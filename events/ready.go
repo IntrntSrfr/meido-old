@@ -3,7 +3,7 @@ package events
 import (
 	"fmt"
 
-	"test/services"
+	"meido-test/services"
 
 	"github.com/bwmarrin/discordgo"
 )
