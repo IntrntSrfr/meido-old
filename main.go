@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-
-	"meido-test/services"
 )
+
+type commandmap map[string]Command
+
+var commands commandmap
 
 func main() {
 
@@ -21,7 +24,28 @@ func main() {
 		return
 	}
 
-	services.AddHandlers(client)
+	commands = make(commandmap)
+
+	commandList := []Command{
+		{
+			Name:        "jeff",
+			Description: "jeffe",
+			Aliases:     []string{"jeffer", "jeffette"},
+			Usage:       "m?jeff",
+			Function: func(s *discordgo.Session, m *discordgo.MessageCreate) {
+				list := "```\n"
+				for _, val := range commands {
+					list += val.Name + "\n"
+				}
+				list += "```"
+				s.ChannelMessageSend(m.ChannelID, list)
+			},
+		},
+	}
+
+	commands.LoadCommands(commandList)
+
+	AddHandlers(client)
 
 	err = client.Open()
 	if err != nil {
@@ -36,3 +60,45 @@ func main() {
 
 	client.Close()
 }
+
+// AddHandlers does the job
+func AddHandlers(s *discordgo.Session) {
+	s.AddHandler(messageCreateHandler)
+}
+
+func messageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.Bot {
+		return
+	}
+	if cmd, ok := commands[strings.Split(m.Content, " ")[0]]; ok {
+		cmd.Function(s, m)
+	}
+}
+
+func (cmap *commandmap) LoadCommands(cmds []Command) {
+
+	for i := range cmds {
+		cmd := cmds[i]
+
+		(*cmap)["m?"+cmd.Name] = cmd
+	}
+}
+
+type Command struct {
+	Name        string
+	Aliases     []string
+	Description string
+	Usage       string
+	Function    func(s *discordgo.Session, m *discordgo.MessageCreate)
+}
+
+/*
+Command{
+	Name:        "jeff",
+	Description: "jeffe",
+	Aliases:     []string{"jeffer", "jeffette"},
+	Usage:       "m?jeff",
+	Function: func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		s.ChannelMessageSend(m.ChannelID, "jeff")
+	},
+} */
