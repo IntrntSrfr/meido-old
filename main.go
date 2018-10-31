@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
+	"meido-test/commands"
+	"meido-test/events"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-type commandmap map[string]Command
+//type commandmap map[string]commands.Command
 
-var commands commandmap
-var commandList []Command
+var comms commands.Commandmap
 
 func main() {
 
@@ -25,26 +25,9 @@ func main() {
 		return
 	}
 
-	commands = make(commandmap)
+	comms = make(commands.Commandmap)
 
-	//commandList = []Command{}
-
-	commandList = append(commandList, Command{
-		Name:          "jeff",
-		Description:   "jeffe",
-		Aliases:       []string{"jeffer", "jeffette"},
-		Usage:         "m?jeff",
-		RequiredPerms: discordgo.PermissionManageMessages,
-		Function: func(s *discordgo.Session, m *discordgo.MessageCreate) {
-			list := "```\n"
-			for _, val := range commands {
-				list += val.Name + "\n"
-			}
-			list += "```"
-			s.ChannelMessageSend(m.ChannelID, list)
-		}})
-
-	commands.LoadCommands(commandList)
+	commands.LoadCommands(&comms)
 
 	AddHandlers(client)
 
@@ -64,9 +47,11 @@ func main() {
 
 // AddHandlers does the job
 func AddHandlers(s *discordgo.Session) {
-	s.AddHandler(messageCreateHandler)
+	s.AddHandler(events.ReadyHandler)
+	s.AddHandler(commands.MessageCreateHandler)
 }
 
+/*
 func messageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.Bot {
 		return
@@ -89,7 +74,7 @@ func messageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	args := strings.Split(m.Content, " ")
 
 	triggerCommand := ""
-	for _, val := range commands {
+	for _, val := range comms {
 		name := "m?" + val.Name
 
 		if args[0] == name {
@@ -104,36 +89,15 @@ func messageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	if triggerCommand != "" {
 
-		if cmd, ok := commands[triggerCommand]; ok {
+		if cmd, ok := comms[triggerCommand]; ok {
 			if perms&cmd.RequiredPerms == 0 {
 				return
 			}
 			cmd.Function(s, m)
 		}
 	}
-	/*
-	 */
 }
-
-func (cmap *commandmap) LoadCommands(cmds []Command) {
-
-	for i := range cmds {
-
-		cmd := cmds[i]
-
-		(*cmap)[cmd.Name] = cmd
-	}
-}
-
-type Command struct {
-	Name          string
-	Aliases       []string
-	Description   string
-	Usage         string
-	RequiredPerms int
-	Function      func(s *discordgo.Session, m *discordgo.MessageCreate)
-}
-
+*/
 /*
 Command{
 	Name:        "jeff",
