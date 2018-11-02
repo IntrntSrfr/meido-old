@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"meido-test/service"
 	"strings"
 
@@ -59,6 +60,11 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	g, err := s.Guild(ch.GuildID)
+	if err != nil {
+		return
+	}
+
 	if ch.Type != discordgo.ChannelTypeGuildText {
 		return
 	}
@@ -91,6 +97,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 			cmd.Function(&context)
+			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", cmd.Name, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
 		}
 	}
 
