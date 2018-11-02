@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"meido-test/commands"
 	"meido-test/events"
 	"os"
@@ -13,11 +15,27 @@ import (
 
 //type commandmap map[string]commands.Command
 
-var comms commands.Commandmap
+type Config struct {
+	Token string `json:"Token"`
+}
+
+var (
+	comms  commands.Commandmap
+	config Config
+)
 
 func main() {
 
-	token := "NDg1NzIwNzI1MDkzODc1NzI0.DqnVwg.zbBZIxVSHVQjnX0Aqt2ws4XucXE"
+	file, e := ioutil.ReadFile("./config.json")
+	if e != nil {
+		fmt.Printf("Config file not found.")
+		return
+	}
+
+	json.Unmarshal(file, &config)
+
+	token := config.Token
+
 	client, err := discordgo.New("Bot " + token)
 
 	if err != nil {
