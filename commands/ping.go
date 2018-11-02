@@ -2,25 +2,29 @@ package commands
 
 import (
 	"meido-test/service"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 var Ping = Command{
-	Name:          "jeff",
-	Description:   "jeffe",
-	Aliases:       []string{"jeffer", "jeffette"},
-	Usage:         "m?jeff",
+	Name:          "ping",
+	Description:   "Shows delay.",
+	Aliases:       []string{},
+	Usage:         "m?ping",
 	RequiredPerms: discordgo.PermissionManageMessages,
 	Function: func(context *service.Context) {
+		sendTime := time.Now()
 
-		comms := GetCommandMap()
-
-		list := "```\n"
-		for _, val := range *comms {
-			list += val.Name + "\n"
+		msg, err := context.Session.ChannelMessageSend(context.Message.ChannelID, "Pong")
+		if err != nil {
+			return
 		}
-		list += "```"
-		context.Session.ChannelMessageSend(context.Message.ChannelID, list)
+
+		receiveTime := time.Now()
+
+		delay := receiveTime.Sub(sendTime)
+
+		context.Session.ChannelMessageEdit(context.Message.ChannelID, msg.ID, "Pong - "+delay.String())
 	},
 }

@@ -17,9 +17,15 @@ func NewContext(s *discordgo.Session, m *discordgo.Message) Context {
 }
 
 func (c *Context) Send(input string) {
-	c.Session.ChannelMessageSend(ctx.Message.ChannelID, input)
+	_, err := c.Session.ChannelMessageSend(c.Message.ChannelID, input)
+	if err != nil {
+		c.Session.ChannelMessageSend(c.Message.ChannelID, err.Error())
+	}
 }
 
-func SendEmbed(embed discordgo.MessageEmbed) {
-	ctx.Session.ChannelMessageSendEmbed(ctx.Message.ChannelID, &embed)
+func (c *Context) SendEmbed(embed discordgo.MessageEmbed) {
+	_, err := c.Session.ChannelMessageSendEmbed(c.Message.ChannelID, &embed)
+	if err != nil {
+		c.Session.ChannelMessageSend(c.Message.ChannelID, err.Error())
+	}
 }

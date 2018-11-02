@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"meido-test/service"
 	"strings"
 
@@ -23,15 +22,16 @@ var comms = Commandmap{}
 
 func LoadCommands(cmap *Commandmap) {
 
+	cmap.RegisterCommand(Help)
 	cmap.RegisterCommand(Ping)
 
 	comms = *cmap
 
 }
 
-func GetCommandMap() *Commandmap {
+func GetCommandMap() Commandmap {
 
-	return &comms
+	return comms
 
 }
 
@@ -43,15 +43,15 @@ func (cmap *Commandmap) RegisterCommand(cmd Command) {
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	context := service.NewContext(s, m.Message)
-	fmt.Println(context)
+	//fmt.Println(context)
 	//context.Load(s, m.Message)
 
 	if m.Author.Bot {
 		return
 	}
-
-	context.Send("jeff")
-
+	/*
+		context.Send("jeff")
+	*/
 	//service.Send("jeff")
 
 	ch, err := s.Channel(m.ChannelID)
@@ -79,7 +79,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		for _, com := range val.Aliases {
-			if args[0] == com {
+			if args[0] == "m?"+com {
 				triggerCommand = val.Name
 			}
 		}
