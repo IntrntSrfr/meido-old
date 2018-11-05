@@ -63,7 +63,7 @@ func (b *Bot) Run() {
 
 	comms = make(commands.Commandmap)
 
-	commands.LoadCommands(&comms)
+	commands.Initialize(&comms)
 
 	AddHandlers(client)
 

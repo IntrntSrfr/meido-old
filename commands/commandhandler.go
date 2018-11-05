@@ -21,13 +21,17 @@ type Commandmap map[string]Command
 
 var comms = Commandmap{}
 
-func LoadCommands(cmap *Commandmap) {
+func Initialize(cmap *Commandmap) {
 
 	cmap.RegisterCommand(Help)
 	cmap.RegisterCommand(Ping)
 	cmap.RegisterCommand(WithNick)
 	cmap.RegisterCommand(WithTag)
 	cmap.RegisterCommand(About)
+	cmap.RegisterCommand(Server)
+	cmap.RegisterCommand(Test)
+	cmap.RegisterCommand(ClearAFK)
+	cmap.RegisterCommand(CoolNameBro)
 
 	comms = *cmap
 
@@ -76,6 +80,10 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if err != nil {
 		return
 	}
+	botPerms, err := s.UserChannelPermissions(s.State.User.ID, ch.ID)
+	if err != nil {
+		return
+	}
 
 	args := strings.Split(m.Content, " ")
 
@@ -99,6 +107,11 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if perms&cmd.RequiredPerms == 0 {
 				return
 			}
+			if botPerms&cmd.RequiredPerms == 0 {
+				context.Send(fmt.Sprintf("Missing permissions: %v", cmd.RequiredPerms))
+				return
+			}
+
 			cmd.Execute(args, &context)
 			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
 		}

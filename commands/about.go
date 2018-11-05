@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"meido-test/service"
+	"runtime"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -42,6 +43,9 @@ var About = Command{
 			}
 		}
 
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+
 		embed := discordgo.MessageEmbed{
 			Title: "About",
 			Fields: []*discordgo.MessageEmbedField{
@@ -53,6 +57,21 @@ var About = Command{
 				&discordgo.MessageEmbedField{
 					Name:   "Channels",
 					Value:  fmt.Sprintf("Total: %v\nText: %v\nVoice: %v", totalChannels, textChannels, voiceChannels),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Servers",
+					Value:  fmt.Sprintf("%v servers", len(ctx.Session.State.Guilds)),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Uptime",
+					Value:  "very long",
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Memory usage",
+					Value:  fmt.Sprintf("(%vmb/%vmb)", m.TotalAlloc/1024/1024, m.Sys/1024/1024),
 					Inline: true,
 				},
 			},
