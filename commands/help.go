@@ -14,9 +14,7 @@ var Help = Command{
 	Aliases:       []string{},
 	Usage:         "m?help <optional command name>",
 	RequiredPerms: discordgo.PermissionManageMessages,
-	Function: func(context *service.Context) {
-
-		args := strings.Split(context.Message.Content, " ")
+	Execute: func(args []string, ctx *service.Context) {
 
 		comms := GetCommandMap()
 
@@ -28,7 +26,7 @@ var Help = Command{
 			}
 			list += "```"
 
-			context.Send(list)
+			ctx.Send(list)
 		} else {
 
 			comm := args[1]
@@ -38,23 +36,23 @@ var Help = Command{
 					Title:       cmd.Name,
 					Description: cmd.Description,
 					Fields: []*discordgo.MessageEmbedField{
-						&discordgo.MessageEmbedField{
+						{
 							Name:  "Usage",
 							Value: cmd.Usage,
 						},
-						&discordgo.MessageEmbedField{
+						{
 							Name:  "Aliases",
 							Value: aliases(cmd.Aliases),
 						},
-						&discordgo.MessageEmbedField{
+						{
 							Name:  "Required permissions",
 							Value: fmt.Sprintf("%v", cmd.RequiredPerms),
 						},
 					},
 				}
-				context.SendEmbed(embed)
+				ctx.SendEmbed(&embed)
 			} else {
-				context.Send("Command not found")
+				ctx.Send("Command not found")
 			}
 
 		}

@@ -9,14 +9,21 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/lib/pq"
 )
 
 //type commandmap map[string]commands.Command
 
 type Config struct {
-	Token string `json:"Token"`
+	Token            string `json:"Token"`
+	ConnectionString string `json:"ConnectionString"`
+}
+
+type Bot struct {
+	StartTime time.Time
 }
 
 var (
@@ -25,6 +32,12 @@ var (
 )
 
 func main() {
+	bot := Bot{}
+	bot.Run()
+}
+
+func (b *Bot) Run() {
+	b.StartTime = time.Now()
 
 	file, e := ioutil.ReadFile("./config.json")
 	if e != nil {
@@ -42,6 +55,11 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	/*
+		db, err = sql.Open("postgres", config.Connectionstring)
+		if err != nil {
+			panic("could not connect to db " + err.Error())
+		} */
 
 	comms = make(commands.Commandmap)
 
@@ -68,61 +86,3 @@ func AddHandlers(s *discordgo.Session) {
 	s.AddHandler(events.ReadyHandler)
 	s.AddHandler(commands.MessageCreateHandler)
 }
-
-/*
-func messageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.Bot {
-		return
-	}
-
-	ch, err := s.Channel(m.ChannelID)
-	if err != nil {
-		return
-	}
-
-	if ch.Type != discordgo.ChannelTypeGuildText {
-		return
-	}
-
-	perms, err := s.UserChannelPermissions(m.Author.ID, ch.ID)
-	if err != nil {
-		return
-	}
-
-	args := strings.Split(m.Content, " ")
-
-	triggerCommand := ""
-	for _, val := range comms {
-		name := "m?" + val.Name
-
-		if args[0] == name {
-			triggerCommand = val.Name
-		}
-
-		for _, com := range val.Aliases {
-			if args[0] == com {
-				triggerCommand = val.Name
-			}
-		}
-	}
-	if triggerCommand != "" {
-
-		if cmd, ok := comms[triggerCommand]; ok {
-			if perms&cmd.RequiredPerms == 0 {
-				return
-			}
-			cmd.Function(s, m)
-		}
-	}
-}
-*/
-/*
-Command{
-	Name:        "jeff",
-	Description: "jeffe",
-	Aliases:     []string{"jeffer", "jeffette"},
-	Usage:       "m?jeff",
-	Function: func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		s.ChannelMessageSend(m.ChannelID, "jeff")
-	},
-} */

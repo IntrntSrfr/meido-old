@@ -14,7 +14,7 @@ type Command struct {
 	Description   string
 	Usage         string
 	RequiredPerms int
-	Function      func(context *service.Context)
+	Execute       func(args []string, context *service.Context)
 }
 
 type Commandmap map[string]Command
@@ -25,6 +25,9 @@ func LoadCommands(cmap *Commandmap) {
 
 	cmap.RegisterCommand(Help)
 	cmap.RegisterCommand(Ping)
+	cmap.RegisterCommand(WithNick)
+	cmap.RegisterCommand(WithTag)
+	cmap.RegisterCommand(About)
 
 	comms = *cmap
 
@@ -96,9 +99,8 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if perms&cmd.RequiredPerms == 0 {
 				return
 			}
-			cmd.Function(&context)
-			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", cmd.Name, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
+			cmd.Execute(args, &context)
+			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
 		}
 	}
-
 }

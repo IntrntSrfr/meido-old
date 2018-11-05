@@ -13,10 +13,10 @@ var Ping = Command{
 	Aliases:       []string{},
 	Usage:         "m?ping",
 	RequiredPerms: discordgo.PermissionManageMessages,
-	Function: func(context *service.Context) {
+	Execute: func(args []string, ctx *service.Context) {
 		sendTime := time.Now()
 
-		msg, err := context.Session.ChannelMessageSend(context.Message.ChannelID, "Pong")
+		msg, err := ctx.Session.ChannelMessageSend(ctx.Message.ChannelID, "Pong")
 		if err != nil {
 			return
 		}
@@ -25,6 +25,6 @@ var Ping = Command{
 
 		delay := receiveTime.Sub(sendTime)
 
-		context.Session.ChannelMessageEdit(context.Message.ChannelID, msg.ID, "Pong - "+delay.String())
+		ctx.Session.ChannelMessageEdit(ctx.Message.ChannelID, msg.ID, "Pong - "+delay.String())
 	},
 }
