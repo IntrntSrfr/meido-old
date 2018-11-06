@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"database/sql"
 	"fmt"
 	"meido-test/service"
 	"strings"
@@ -19,9 +20,12 @@ type Command struct {
 
 type Commandmap map[string]Command
 
-var comms = Commandmap{}
+var (
+	comms = Commandmap{}
+	db    *sql.DB
+)
 
-func Initialize(cmap *Commandmap) {
+func Initialize(cmap *Commandmap, DB *sql.DB) {
 
 	cmap.RegisterCommand(Help)
 	cmap.RegisterCommand(Ping)
@@ -34,7 +38,7 @@ func Initialize(cmap *Commandmap) {
 	cmap.RegisterCommand(CoolNameBro)
 
 	comms = *cmap
-
+	db = DB
 }
 
 func GetCommandMap() Commandmap {
@@ -50,7 +54,7 @@ func (cmap *Commandmap) RegisterCommand(cmd Command) {
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	context := service.NewContext(s, m.Message)
+	context := service.NewContext(s, m.Message, db)
 	//fmt.Println(context)
 	//context.Load(s, m.Message)
 

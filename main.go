@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -55,15 +56,15 @@ func (b *Bot) Run() {
 		fmt.Println(err)
 		return
 	}
-	/*
-		db, err = sql.Open("postgres", config.Connectionstring)
-		if err != nil {
-			panic("could not connect to db " + err.Error())
-		} */
+
+	db, err := sql.Open("postgres", config.ConnectionString)
+	if err != nil {
+		panic("could not connect to db " + err.Error())
+	}
 
 	comms = make(commands.Commandmap)
 
-	commands.Initialize(&comms)
+	commands.Initialize(&comms, db)
 
 	AddHandlers(client)
 

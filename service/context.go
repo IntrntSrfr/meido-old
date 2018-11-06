@@ -1,6 +1,8 @@
 package service
 
 import (
+	"database/sql"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -10,12 +12,12 @@ type Context struct {
 	Guild   *discordgo.Guild
 	Channel *discordgo.Channel
 	User    *discordgo.User
-	//Db      *sql.DB
+	Db      *sql.DB
 }
 
 var ctx = Context{}
 
-func NewContext(s *discordgo.Session, m *discordgo.Message) Context {
+func NewContext(s *discordgo.Session, m *discordgo.Message, db *sql.DB) Context {
 	ch, err := s.Channel(m.ChannelID)
 	if err != nil {
 		ch = nil
@@ -37,6 +39,7 @@ func NewContext(s *discordgo.Session, m *discordgo.Message) Context {
 		User:    u,
 		Channel: ch,
 		Guild:   g,
+		Db:      db,
 	}
 }
 
