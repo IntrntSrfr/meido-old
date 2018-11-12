@@ -11,9 +11,9 @@ import (
 var WithNick = Command{
 	Name:          "withnick",
 	Description:   "Shows how many has an input user- or nickname.",
-	Aliases:       []string{},
+	Triggers:      []string{"m?withnick"},
 	Usage:         "m?withnick meido",
-	RequiredPerms: discordgo.PermissionManageMessages,
+	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
 		var (

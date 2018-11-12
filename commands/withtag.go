@@ -11,9 +11,9 @@ import (
 var WithTag = Command{
 	Name:          "withtag",
 	Description:   "Shows how many has an input discriminator.",
-	Aliases:       []string{},
+	Triggers:      []string{"m?withtag"},
 	Usage:         "m?withtag <0001/#0001>",
-	RequiredPerms: discordgo.PermissionManageMessages,
+	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
 		var (

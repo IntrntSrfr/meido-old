@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"meido-test/service"
 	"runtime"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -11,9 +12,9 @@ import (
 var About = Command{
 	Name:          "about",
 	Description:   "Shows info about Meido.",
-	Aliases:       []string{},
+	Triggers:      []string{"m?about"},
 	Usage:         "m?help",
-	RequiredPerms: discordgo.PermissionManageMessages,
+	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		var (
 			totalUsers    int
@@ -46,6 +47,10 @@ var About = Command{
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 
+		thisTime := time.Now()
+
+		timespan := thisTime.Sub(startTime)
+
 		embed := discordgo.MessageEmbed{
 			Title: "About",
 			Fields: []*discordgo.MessageEmbedField{
@@ -66,7 +71,7 @@ var About = Command{
 				},
 				&discordgo.MessageEmbedField{
 					Name:   "Uptime",
-					Value:  "very long",
+					Value:  fmt.Sprintf("Uptime: %v", timespan.String()),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{

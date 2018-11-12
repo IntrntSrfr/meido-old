@@ -11,9 +11,9 @@ import (
 var Help = Command{
 	Name:          "help",
 	Description:   "Shows info about commands.",
-	Aliases:       []string{},
+	Triggers:      []string{"m?help", "m?h"},
 	Usage:         "m?help <optional command name>",
-	RequiredPerms: discordgo.PermissionManageMessages,
+	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
 		comms := GetCommandMap()
@@ -35,14 +35,15 @@ var Help = Command{
 				embed := discordgo.MessageEmbed{
 					Title:       cmd.Name,
 					Description: cmd.Description,
+					Color:       dColorWhite,
 					Fields: []*discordgo.MessageEmbedField{
 						{
 							Name:  "Usage",
 							Value: cmd.Usage,
 						},
 						{
-							Name:  "Aliases",
-							Value: aliases(cmd.Aliases),
+							Name:  "Triggers",
+							Value: strings.Join(cmd.Triggers, ", "),
 						},
 						{
 							Name:  "Required permissions",
@@ -54,16 +55,6 @@ var Help = Command{
 			} else {
 				ctx.Send("Command not found")
 			}
-
 		}
-
 	},
-}
-
-func aliases(list []string) string {
-	if len(list) < 1 {
-		return "no aliases"
-	} else {
-		return strings.Join(list, ", ")
-	}
 }

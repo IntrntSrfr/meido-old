@@ -17,7 +17,7 @@ type Context struct {
 
 var ctx = Context{}
 
-func NewContext(s *discordgo.Session, m *discordgo.Message, db *sql.DB) Context {
+func NewContext(s *discordgo.Session, m *discordgo.Message) Context {
 	ch, err := s.Channel(m.ChannelID)
 	if err != nil {
 		ch = nil
@@ -39,7 +39,6 @@ func NewContext(s *discordgo.Session, m *discordgo.Message, db *sql.DB) Context 
 		User:    u,
 		Channel: ch,
 		Guild:   g,
-		Db:      db,
 	}
 }
 

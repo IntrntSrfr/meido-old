@@ -16,11 +16,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
-//type commandmap map[string]commands.Command
-
 type Config struct {
-	Token            string `json:"Token"`
-	ConnectionString string `json:"ConnectionString"`
+	Token            string   `json:"Token"`
+	ConnectionString string   `json:"Connectionstring"`
+	DmLogChannels    []string `json:"DmLogChannels"`
+	OwnerIds         []string `json:"OwnerIds"`
 }
 
 type Bot struct {
@@ -62,11 +62,10 @@ func (b *Bot) Run() {
 		panic("could not connect to db " + err.Error())
 	}
 
-	comms = make(commands.Commandmap)
+	commands.Initialize(&config.OwnerIds, &config.DmLogChannels, db)
+	events.Initialize(db)
 
-	commands.Initialize(&comms, db)
-
-	AddHandlers(client)
+	addHandlers(client)
 
 	err = client.Open()
 	if err != nil {
@@ -82,8 +81,11 @@ func (b *Bot) Run() {
 	client.Close()
 }
 
-// AddHandlers does the job
-func AddHandlers(s *discordgo.Session) {
-	s.AddHandler(events.ReadyHandler)
-	s.AddHandler(commands.MessageCreateHandler)
+func addHandlers(s *discordgo.Session) {
+	go s.AddHandler(events.GuildAvailableHandler)
+	go s.AddHandler(events.GuildRoleDeleteHandler)
+	go s.AddHandler(events.MemberJoinedHandler)
+	go s.AddHandler(events.MessageUpdateHandler)
+	go s.AddHandler(events.ReadyHandler)
+	go s.AddHandler(commands.MessageCreateHandler)
 }

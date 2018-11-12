@@ -10,9 +10,9 @@ import (
 var Ping = Command{
 	Name:          "ping",
 	Description:   "Shows delay.",
-	Aliases:       []string{},
+	Triggers:      []string{"m?ping"},
 	Usage:         "m?ping",
-	RequiredPerms: discordgo.PermissionManageMessages,
+	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		sendTime := time.Now()
 

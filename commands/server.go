@@ -10,9 +10,9 @@ import (
 var Server = Command{
 	Name:          "server",
 	Description:   "Shows information about the current server.",
-	Aliases:       []string{"serverinfo", "sa"},
-	Usage:         "m?withtag <0001/#0001>",
-	RequiredPerms: discordgo.PermissionManageMessages,
+	Triggers:      []string{"m?server", "m?serverinfo", "m?sa"},
+	Usage:         "m?server",
+	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		embed := discordgo.MessageEmbed{
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
@@ -25,22 +25,32 @@ var Server = Command{
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
 					Name:   "Members",
-					Value:  fmt.Sprintf(".%v", ctx.Guild.MemberCount),
+					Value:  fmt.Sprintf("%v members", ctx.Guild.MemberCount),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
 					Name:   "Channels",
-					Value:  fmt.Sprintf(".%v", len(ctx.Guild.Channels)),
+					Value:  fmt.Sprintf("%v channels", len(ctx.Guild.Channels)),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
 					Name:   "Verification level",
-					Value:  fmt.Sprintf(".%v", ctx.Guild.VerificationLevel),
+					Value:  fmt.Sprintf("%v", ctx.Guild.VerificationLevel),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
 					Name:   "Roles",
-					Value:  fmt.Sprintf(".%v", len(ctx.Guild.Roles)),
+					Value:  fmt.Sprintf("%v roles", len(ctx.Guild.Roles)),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Owner",
+					Value:  fmt.Sprintf("%v (%v)", ctx.Guild.OwnerID, ctx.Guild.OwnerID),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Created",
+					Value:  fmt.Sprintf("%v", ctx.Guild.JoinedAt),
 					Inline: true,
 				},
 			},

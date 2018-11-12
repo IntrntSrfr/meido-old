@@ -10,7 +10,7 @@ import (
 var ClearAFK = Command{
 	Name:          "clearafk",
 	Description:   "Moves AFK users to AFK channel, if there is one.",
-	Aliases:       []string{},
+	Triggers:      []string{"m?clearafk"},
 	Usage:         "m?clearafk",
 	RequiredPerms: discordgo.PermissionVoiceMoveMembers,
 	Execute: func(args []string, ctx *service.Context) {

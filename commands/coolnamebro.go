@@ -11,9 +11,9 @@ import (
 var CoolNameBro = Command{
 	Name:          "coolnamebro",
 	Description:   "Renames attentionseeking nick- or usernames.",
-	Aliases:       []string{"cnb"},
+	Triggers:      []string{"m?coolnamebro", "m?cnb"},
 	Usage:         "m?coolnamebro my name is shit",
-	RequiredPerms: discordgo.PermissionManageMessages,
+	RequiredPerms: discordgo.PermissionManageNicknames,
 	Execute: func(args []string, ctx *service.Context) {
 
 		if len(args) < 2 {
@@ -56,11 +56,11 @@ var CoolNameBro = Command{
 func badName(u *discordgo.Member) bool {
 
 	if u.Nick != "" {
-		if u.Nick[0] < 46 {
+		if u.Nick[0] < 48 {
 			return true
 		}
 	}
-	if u.User.Username[0] < 46 {
+	if u.User.Username[0] < 48 {
 		return true
 	}
 	return false

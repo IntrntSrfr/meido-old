@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-	"meido-test/models"
 	"meido-test/service"
 
 	"github.com/bwmarrin/discordgo"
@@ -11,44 +9,13 @@ import (
 var Test = Command{
 	Name:          "test",
 	Description:   "does epic testing.",
-	Aliases:       []string{},
+	Triggers:      []string{"m?test"},
 	Usage:         "m?test",
-	RequiredPerms: discordgo.PermissionVoiceMoveMembers,
+	RequiredPerms: discordgo.PermissionSendMessages,
+	RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
-		rows, err := ctx.Db.Query("SELECT * FROM discordusers ORDER BY xp LIMIT 10;")
-		if err != nil {
-			return
-		}
 
-		list := []models.Discorduser{}
+		ctx.Send("epic")
 
-		for rows.Next() {
-			dbu := models.Discorduser{}
-
-			err = rows.Scan(
-				&dbu.Uid,
-				&dbu.Userid,
-				&dbu.Username,
-				&dbu.Discriminator,
-				&dbu.Xp,
-				&dbu.Nextxpgaintime,
-				&dbu.Xpexcluded,
-				&dbu.Reputation,
-				&dbu.Cangivereptime)
-
-			if err != nil {
-				continue
-			}
-			list = append(list, dbu)
-		}
-
-		block := "```\n"
-
-		for _, val := range list {
-			block += fmt.Sprintf("%v#%v, %v reputation, %v experience\n", val.Username, val.Discriminator, val.Reputation, val.Xp)
-		}
-
-		block += "```"
-		ctx.Send(block)
 	},
 }
