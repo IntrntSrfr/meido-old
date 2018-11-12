@@ -43,11 +43,14 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(CoolNameBro)
 	comms.RegisterCommand(Help)
 	comms.RegisterCommand(Inrole)
+	comms.RegisterCommand(Lockdown)
 	comms.RegisterCommand(MyRole)
 	comms.RegisterCommand(Ping)
 	comms.RegisterCommand(Server)
 	comms.RegisterCommand(SetUserRole)
 	comms.RegisterCommand(Test)
+	comms.RegisterCommand(Unlock)
+	comms.RegisterCommand(Umr)
 	comms.RegisterCommand(WithNick)
 	comms.RegisterCommand(WithTag)
 
@@ -192,8 +195,9 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		if cmd, ok := comms[triggerCommand]; ok {
 
+			isOwner := false
+
 			if cmd.RequiresOwner == true {
-				isOwner := false
 				for _, val := range ownerIds {
 					if m.Author.ID == val {
 						isOwner = true
@@ -204,9 +208,12 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				}
 			}
 
-			if perms&cmd.RequiredPerms == 0 {
-				return
+			if !isOwner {
+				if perms&cmd.RequiredPerms == 0 {
+					return
+				}
 			}
+
 			if botPerms&cmd.RequiredPerms == 0 {
 				context.Send(fmt.Sprintf("I am missing permissions: %v", cmd.RequiredPerms))
 				return

@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func ReadyHandler(s *discordgo.Session, m *discordgo.Ready) {
+func ReadyHandler(s *discordgo.Session, r *discordgo.Ready) {
 	/*
 		data := discordgo.UpdateStatusData{
 			Game: &discordgo.Game{
@@ -17,5 +17,5 @@ func ReadyHandler(s *discordgo.Session, m *discordgo.Ready) {
 
 		s.UpdateStatusComplex(data)
 	*/
-	fmt.Println("Logged in.")
+	fmt.Println(fmt.Sprintf("Logged in as %v.", r.User.String()))
 }

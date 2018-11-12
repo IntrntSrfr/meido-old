@@ -13,7 +13,7 @@ var About = Command{
 	Name:          "about",
 	Description:   "Shows info about Meido.",
 	Triggers:      []string{"m?about"},
-	Usage:         "m?help",
+	Usage:         "m?about",
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		var (
