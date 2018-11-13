@@ -38,7 +38,7 @@ var Dm = Command{
 		}
 
 		ctx.Session.ChannelMessageSend(userch.ID, strings.Join(args[2:], " "))
-		ctx.Send(fmt.Sprintf("Message sent to %v", userch.Name))
+		ctx.Send(fmt.Sprintf("Message sent to %v", userch.Recipients[0]))
 
 	},
 }
