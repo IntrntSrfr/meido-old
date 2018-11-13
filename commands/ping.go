@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"meido-test/service"
 	"time"
 
@@ -16,8 +15,6 @@ var Ping = Command{
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		sendTime := time.Now()
-
-		fmt.Println("")
 
 		msg, err := ctx.Send("Pong")
 		if err != nil {
