@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -42,8 +43,8 @@ func NewContext(s *discordgo.Session, m *discordgo.Message) Context {
 	}
 }
 
-func (c *Context) Send(input string) (*discordgo.Message, error) {
-	return c.Session.ChannelMessageSend(c.Message.ChannelID, input)
+func (c *Context) Send(a ...interface{}) (*discordgo.Message, error) {
+	return c.Session.ChannelMessageSend(c.Message.ChannelID, fmt.Sprintf("%v", a...))
 }
 
 func (c *Context) SendEmbed(embed *discordgo.MessageEmbed) (*discordgo.Message, error) {

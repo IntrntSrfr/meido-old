@@ -25,7 +25,6 @@ var Avatar = Command{
 			} else {
 				targetUser, err = ctx.Session.User(args[1])
 				if err != nil {
-					//s.ChannelMessageSend(ch.ID, err.Error())
 					return
 				}
 			}

@@ -39,20 +39,29 @@ var (
 
 func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(About)
+	comms.RegisterCommand(Avatar)
+	comms.RegisterCommand(Ban)
 	comms.RegisterCommand(ClearAFK)
 	comms.RegisterCommand(CoolNameBro)
+	//comms.RegisterCommand(Filter)
 	comms.RegisterCommand(Help)
 	comms.RegisterCommand(Inrole)
+	comms.RegisterCommand(Kick)
 	comms.RegisterCommand(Lockdown)
 	comms.RegisterCommand(MyRole)
 	comms.RegisterCommand(Ping)
-	comms.RegisterCommand(Server)
+	//comms.RegisterCommand(Role)
+	//comms.RegisterCommand(Server)
 	comms.RegisterCommand(SetUserRole)
-	comms.RegisterCommand(Test)
-	comms.RegisterCommand(Unlock)
 	comms.RegisterCommand(Umr)
+	comms.RegisterCommand(Unlock)
+	//comms.RegisterCommand(User)
 	comms.RegisterCommand(WithNick)
 	comms.RegisterCommand(WithTag)
+
+	comms.RegisterCommand(Test)
+	comms.RegisterCommand(Dm)
+	comms.RegisterCommand(Msg)
 
 	db = DB
 	dmLogChannels = *DmLogChannels
