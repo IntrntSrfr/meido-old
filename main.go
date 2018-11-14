@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/lib/pq"
@@ -24,13 +23,9 @@ type Config struct {
 }
 
 type Bot struct {
-	StartTime time.Time
 }
 
-var (
-	comms  commands.Commandmap
-	config Config
-)
+var config Config
 
 func main() {
 	bot := Bot{}
@@ -38,7 +33,6 @@ func main() {
 }
 
 func (b *Bot) Run() {
-	b.StartTime = time.Now()
 
 	file, e := ioutil.ReadFile("./config.json")
 	if e != nil {
