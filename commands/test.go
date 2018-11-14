@@ -37,6 +37,10 @@ var Dm = Command{
 			return
 		}
 
+		if userch.Type != discordgo.ChannelTypeDM {
+			return
+		}
+
 		ctx.Session.ChannelMessageSend(userch.ID, strings.Join(args[2:], " "))
 		ctx.Send(fmt.Sprintf("Message sent to %v", userch.Recipients[0]))
 

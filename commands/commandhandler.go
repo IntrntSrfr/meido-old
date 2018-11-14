@@ -50,6 +50,9 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(Lockdown)
 	comms.RegisterCommand(MyRole)
 	comms.RegisterCommand(Ping)
+	comms.RegisterCommand(Profile)
+	comms.RegisterCommand(Rep)
+	comms.RegisterCommand(Repleaderboard)
 	//comms.RegisterCommand(Role)
 	//comms.RegisterCommand(Server)
 	comms.RegisterCommand(SetUserRole)
@@ -58,6 +61,7 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	//comms.RegisterCommand(User)
 	comms.RegisterCommand(WithNick)
 	comms.RegisterCommand(WithTag)
+	comms.RegisterCommand(Xpleaderboard)
 
 	comms.RegisterCommand(Test)
 	comms.RegisterCommand(Dm)
@@ -213,6 +217,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 					}
 				}
 				if !isOwner {
+					context.Send("Owner only.")
 					return
 				}
 			}
