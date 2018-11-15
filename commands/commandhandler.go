@@ -3,8 +3,10 @@ package commands
 import (
 	"database/sql"
 	"fmt"
+	"math"
 	"meido-test/models"
 	"meido-test/service"
+	"sort"
 	"strings"
 	"time"
 
@@ -198,7 +200,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	triggerCommand := ""
 	for _, val := range comms {
 		for _, com := range val.Triggers {
-			if args[0] == com {
+			if strings.ToLower(args[0]) == strings.ToLower(com) {
 				triggerCommand = val.Name
 			}
 		}
@@ -275,4 +277,71 @@ func doLocalXp() {
 
 func doGlobalXp() {
 
+}
+
+func HighestRole(g *discordgo.Guild, u *discordgo.Member) int {
+
+	if u.User.ID == g.OwnerID {
+		return math.MaxInt64
+	}
+
+	topRole := 0
+
+	for _, val := range u.Roles {
+		for _, role := range g.Roles {
+			if val == role.ID {
+				if role.Position > topRole {
+					topRole = role.Position
+				}
+			}
+		}
+	}
+
+	return topRole
+}
+
+func HighestColor(g *discordgo.Guild, u *discordgo.Member) int {
+
+	topRole := 0
+	topColor := 0
+	groles := discordgo.Roles(g.Roles)
+	userroles := []*discordgo.Role{}
+
+	for _, grole := range groles {
+		for _, urole := range u.Roles {
+			if urole == grole.ID {
+				userroles = append(userroles, grole)
+			}
+		}
+	}
+
+	groles = discordgo.Roles(userroles)
+	sort.Sort(groles)
+	sort.Sort(sort.Reverse(groles))
+
+	for _, grole := range groles {
+
+		if grole.Position > topRole {
+
+			topRole = grole.Position
+
+			if grole.Color != 0 {
+				topColor = grole.Color
+			}
+		}
+	}
+
+	return topColor
+}
+
+func FullHex(hex string) string {
+
+	i := len(hex)
+
+	for i < 6 {
+		hex = "0" + hex
+		i++
+	}
+
+	return hex
 }

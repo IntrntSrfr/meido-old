@@ -82,7 +82,7 @@ var MyRole = Command{
 
 				embed := discordgo.MessageEmbed{
 					Color:       int(color),
-					Description: fmt.Sprintf("Color changed from #%v to #%v", fullHex(fmt.Sprintf("%X", oldRole.Color)), fullHex(fmt.Sprintf("%X", color))),
+					Description: fmt.Sprintf("Color changed from #%v to #%v", FullHex(fmt.Sprintf("%X", oldRole.Color)), FullHex(fmt.Sprintf("%X", color))),
 				}
 				ctx.SendEmbed(&embed)
 			}
@@ -212,22 +212,11 @@ var MyRole = Command{
 				},
 				{
 					Name:   "Color",
-					Value:  fmt.Sprintf("#" + fullHex(fmt.Sprintf("%X", customRole.Color))),
+					Value:  fmt.Sprintf("#" + FullHex(fmt.Sprintf("%X", customRole.Color))),
 					Inline: true,
 				},
 			},
 		}
 		ctx.SendEmbed(&embed)
 	},
-}
-
-func fullHex(hex string) string {
-	i := len(hex)
-
-	for i < 6 {
-		hex = "0" + hex
-		i++
-	}
-
-	return hex
 }

@@ -53,6 +53,20 @@ var Ban = Command{
 			return
 		}
 
+		currentMem, err := ctx.Session.GuildMember(ctx.Guild.ID, ctx.User.ID)
+		if err != nil {
+			return
+		}
+		targetMem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
+		if err != nil {
+			return
+		}
+
+		if HighestRole(ctx.Guild, currentMem) <= HighestRole(ctx.Guild, targetMem) {
+			ctx.Send("no")
+			return
+		}
+
 		userchannel, err := ctx.Session.UserChannelCreate(targetUser.ID)
 		if err != nil {
 			return

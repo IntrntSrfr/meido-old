@@ -14,10 +14,16 @@ var Test = Command{
 	Triggers:      []string{"m?test"},
 	Usage:         "m?test",
 	RequiredPerms: discordgo.PermissionSendMessages,
-	RequiresOwner: true,
+	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
 
-		ctx.Send("epic")
+		mem, err := ctx.Session.GuildMember(ctx.Guild.ID, ctx.User.ID)
+		if err != nil {
+			return
+		}
+
+		ctx.Send(fmt.Sprintf("Top role position: %v", HighestRole(ctx.Guild, mem)))
+		ctx.Send(fmt.Sprintf("Top color: #" + FullHex(fmt.Sprintf("%X", HighestColor(ctx.Guild, mem)))))
 
 	},
 }
