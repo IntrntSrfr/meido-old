@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type Discorduser struct {
+type DiscordUser struct {
 	Uid            int
 	Userid         string
 	Username       string

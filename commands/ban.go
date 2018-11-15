@@ -57,6 +57,7 @@ var Ban = Command{
 		if err != nil {
 			return
 		}
+
 		targetMem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
 		if err != nil {
 			return

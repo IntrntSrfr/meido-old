@@ -47,7 +47,7 @@ var Profile = Command{
 
 		row := db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", targetUser.ID)
 
-		dbu := models.Discorduser{}
+		dbu := models.DiscordUser{}
 
 		err = row.Scan(
 			&dbu.Uid,
@@ -101,7 +101,7 @@ var Rep = Command{
 
 		row := db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", u.ID)
 
-		dbu := models.Discorduser{}
+		dbu := models.DiscordUser{}
 
 		err := row.Scan(
 			&dbu.Uid,
@@ -159,7 +159,7 @@ var Rep = Command{
 
 		row = db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", targetUser.ID)
 
-		dbtu := models.Discorduser{}
+		dbtu := models.DiscordUser{}
 
 		err = row.Scan(
 			&dbtu.Uid,
@@ -208,7 +208,7 @@ var Repleaderboard = Command{
 		place := 1
 
 		for rows.Next() {
-			dbu := models.Discorduser{}
+			dbu := models.DiscordUser{}
 
 			err = rows.Scan(
 				&dbu.Uid,
@@ -259,7 +259,7 @@ var Xpleaderboard = Command{
 		place := 1
 
 		for rows.Next() {
-			dbu := models.Discorduser{}
+			dbu := models.DiscordUser{}
 
 			err = rows.Scan(
 				&dbu.Uid,

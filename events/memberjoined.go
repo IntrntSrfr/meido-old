@@ -23,7 +23,7 @@ func MemberJoinedHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 
 	row := db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", m.User.ID)
 
-	user := models.Discorduser{}
+	user := models.DiscordUser{}
 
 	err = row.Scan(
 		&user.Uid,

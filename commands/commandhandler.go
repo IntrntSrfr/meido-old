@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"math/rand"
 	"meido-test/models"
 	"meido-test/service"
 	"sort"
@@ -194,8 +195,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	doLocalXp()
-	doGlobalXp()
+	doXp(&context)
 
 	triggerCommand := ""
 	for _, val := range comms {
@@ -236,6 +236,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 			cmd.Execute(args, &context)
+			db.Exec("INSERT INTO usedcommands VALUES($1, $2, $3, $4)")
 			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
 		}
 	}
@@ -271,12 +272,120 @@ func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate)
 	return isIllegal
 }
 
-func doLocalXp() {
+func doXp(ctx *service.Context) {
 
-}
+	dbu := models.DiscordUser{}
 
-func doGlobalXp() {
+	currentTime := time.Now()
+	xpTime := time.Now()
+	isIgnored := false
 
+	row := db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", ctx.User.ID)
+	err := row.Scan(
+		&dbu.Uid,
+		&dbu.Userid,
+		&dbu.Username,
+		&dbu.Discriminator,
+		&dbu.Xp,
+		&dbu.Nextxpgaintime,
+		&dbu.Xpexcluded,
+		&dbu.Reputation,
+		&dbu.Cangivereptime,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			db.Exec("INSERT INTO discordusers(userid, username, discriminator, xp, nextxpgaintime, xpexcluded, reputation, cangivereptime) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+				ctx.User.ID,
+				ctx.User.Username,
+				ctx.User.Discriminator,
+				0,
+				currentTime,
+				false,
+				0,
+				currentTime,
+			)
+		}
+	} else {
+		isIgnored = dbu.Xpexcluded
+		xpTime = dbu.Nextxpgaintime
+	}
+
+	diff := xpTime.Sub(currentTime)
+
+	if diff <= 0 {
+
+		igch := models.Xpignoredchannel{}
+		//igu := models.Xpignoreduser{}
+		lcxp := models.Localxp{}
+		gbxp := models.Globalxp{}
+
+		newXp := Random(15, 26)
+
+		rows, err := db.Query("SELECT * FROM xpignoredchannels WHERE guildid = $1;", ctx.Guild.ID)
+		if err != nil {
+			return
+		}
+
+		for rows.Next() {
+			rows.Scan(
+				&igch.Uid,
+				&igch.Channelid,
+			)
+			if igch.Channelid == ctx.Channel.ID {
+				newXp = 0
+			}
+		}
+		/*
+			row = db.QueryRow("SELECT * FROM xpignoreduser WHERE userid = $1;", ctx.User.ID)
+			err = row.Scan(
+				&igu.Uid,
+				&igu.Userid,
+			)
+
+			if err != nil {
+				if igu.Userid == ctx.User.ID {
+					newXp = 0
+				}
+			} */
+
+		if isIgnored {
+			newXp = 0
+		}
+
+		row = db.QueryRow("SELECT * FROM localxp WHERE userid = $1 AND guildid = $2;", ctx.User.ID, ctx.Guild.ID)
+		err = row.Scan(
+			&lcxp.Uid,
+			&lcxp.Guildid,
+			&lcxp.Userid,
+			&lcxp.Xp,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				db.Exec("INSERT INTO localxp(guildid, userid, xp) VALUES($1, $2, $3);", ctx.Guild.ID, ctx.User.ID, newXp)
+			}
+		} else {
+			if newXp != 0 {
+				db.Exec("UPDATE localxp SET xp = $1 WHERE guildid = $2 AND userid = $3;", lcxp.Xp+newXp, ctx.Guild.ID, ctx.User.ID)
+			}
+		}
+		row = db.QueryRow("SELECT * FROM globalxp WHERE userid = $1;", ctx.User.ID)
+		err = row.Scan(
+			&gbxp.Uid,
+			&gbxp.Userid,
+			&gbxp.Xp,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				db.Exec("INSERT INTO globalxp(userid, xp) VALUES($1, $2);", ctx.User.ID, newXp)
+			}
+		} else {
+			if newXp != 0 {
+				db.Exec("UPDATE globalxp SET xp = $1 WHERE userid = $3;", lcxp.Xp+newXp, ctx.User.ID)
+			}
+		}
+
+		db.Exec("UPDATE discordusers SET nextxpgaintime = $1 WHERE userid = $2;", currentTime.Add(time.Minute*time.Duration(2)), ctx.User.ID)
+	}
 }
 
 func HighestRole(g *discordgo.Guild, u *discordgo.Member) int {
@@ -344,4 +453,9 @@ func FullHex(hex string) string {
 	}
 
 	return hex
+}
+
+func Random(min, max int) int {
+	rand.Seed(time.Now().Unix())
+	return rand.Intn(max-min) + min
 }

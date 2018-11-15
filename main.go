@@ -56,6 +56,8 @@ func (b *Bot) Run() {
 		panic("could not connect to db " + err.Error())
 	}
 
+	defer db.Close()
+
 	commands.Initialize(&config.OwnerIds, &config.DmLogChannels, db)
 	events.Initialize(db)
 
