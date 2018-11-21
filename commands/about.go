@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"meido-test/service"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -44,6 +45,13 @@ var About = Command{
 			}
 		}
 
+		var totalCommands int
+		row := db.QueryRow("SELECT COUNT(*) FROM commandlog;")
+		err := row.Scan(&totalCommands)
+		if err != nil {
+			totalCommands = 0
+		}
+
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 
@@ -53,6 +61,7 @@ var About = Command{
 
 		embed := discordgo.MessageEmbed{
 			Title: "About",
+			Color: dColorWhite,
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
 					Name:   "Users",
@@ -77,6 +86,11 @@ var About = Command{
 				&discordgo.MessageEmbedField{
 					Name:   "Memory usage",
 					Value:  fmt.Sprintf("(%vmb/%vmb)", m.TotalAlloc/1024/1024, m.Sys/1024/1024),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Total commands ran",
+					Value:  strconv.Itoa(totalCommands),
 					Inline: true,
 				},
 			},

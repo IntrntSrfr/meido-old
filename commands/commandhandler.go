@@ -32,6 +32,38 @@ type Command struct {
 
 type Commandmap map[string]Command
 
+var permMap = map[int]string{
+	1:          "create instant invite",
+	2:          "kick members",
+	4:          "ban members",
+	8:          "administrator",
+	16:         "manage channels",
+	32:         "manage server",
+	64:         "add reactions",
+	128:        "view audit log",
+	256:        "priority speaker",
+	1024:       "view channel",
+	2048:       "send messages",
+	4096:       "send tts messages",
+	8192:       "manage messages",
+	16384:      "embed links",
+	32768:      "attach files",
+	65536:      "read message history",
+	131072:     "mention everyone",
+	262144:     "use external emojis",
+	1048576:    "connect",
+	2097152:    "speak",
+	4194304:    "mute members",
+	8388608:    "deafen members",
+	16777216:   "move members",
+	33554432:   "use VAD",
+	67108864:   "change nickname",
+	134217728:  "manage nicknames",
+	268435456:  "manage roles",
+	536870912:  "manage webhooks",
+	1073741824: "manage emojis",
+}
+
 var (
 	startTime     = time.Now()
 	comms         = Commandmap{}
@@ -46,16 +78,21 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(Ban)
 	comms.RegisterCommand(ClearAFK)
 	comms.RegisterCommand(CoolNameBro)
-	//comms.RegisterCommand(Filter)
+
+	comms.RegisterCommand(FilterWord)
+	comms.RegisterCommand(FilterWordList)
+	comms.RegisterCommand(FilterInfo)
+	comms.RegisterCommand(FilterIgnoreChannel)
+	comms.RegisterCommand(ClearFilter)
+	comms.RegisterCommand(UseStrikes)
+	comms.RegisterCommand(SetMaxStrikes)
+
 	comms.RegisterCommand(Help)
 	comms.RegisterCommand(Inrole)
 	comms.RegisterCommand(Kick)
 	comms.RegisterCommand(Lockdown)
 	comms.RegisterCommand(MyRole)
 	comms.RegisterCommand(Ping)
-	comms.RegisterCommand(Profile)
-	comms.RegisterCommand(Rep)
-	comms.RegisterCommand(Repleaderboard)
 	//comms.RegisterCommand(Role)
 	//comms.RegisterCommand(Server)
 	comms.RegisterCommand(SetUserRole)
@@ -64,7 +101,12 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	//comms.RegisterCommand(User)
 	comms.RegisterCommand(WithNick)
 	comms.RegisterCommand(WithTag)
-	comms.RegisterCommand(Xpleaderboard)
+
+	comms.RegisterCommand(Profile)
+	comms.RegisterCommand(Rep)
+	comms.RegisterCommand(Repleaderboard)
+	comms.RegisterCommand(XpLeaderboard)
+	comms.RegisterCommand(GlobalXpLeaderboard)
 
 	comms.RegisterCommand(Test)
 	comms.RegisterCommand(Dm)
@@ -231,12 +273,12 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 			if botPerms&cmd.RequiredPerms == 0 {
-				context.Send(fmt.Sprintf("I am missing permissions: %v", cmd.RequiredPerms))
+				context.Send(fmt.Sprintf("I am missing permissions: %v", permMap[cmd.RequiredPerms]))
 				return
 			}
 
 			cmd.Execute(args, &context)
-			db.Exec("INSERT INTO usedcommands VALUES($1, $2, $3, $4)")
+			db.Exec("INSERT INTO commandlog(command, args, userid, guildid, channelid, messageid, tstamp) VALUES($1, $2, $3, $4, $5, $6, $7)", cmd.Name, strings.Join(args, " "), m.Author.ID, g.ID, ch.ID, m.ID, time.Now())
 			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
 		}
 	}
@@ -245,8 +287,21 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate) bool {
 
 	isIllegal := false
+	trigger := ""
 
 	if *perms&discordgo.PermissionManageMessages == 0 {
+
+		var count int
+
+		row := db.QueryRow("SELECT COUNT(*) FROM filterignorechannels WHERE channelid = $1;", ctx.Channel.ID)
+		err := row.Scan(&count)
+		if err != nil {
+			return false
+		}
+
+		if count > 0 {
+			return true
+		}
 
 		rows, _ := db.Query("SELECT phrase FROM filters WHERE guildid = $1", ctx.Guild.ID)
 
@@ -258,14 +313,112 @@ func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate)
 			}
 
 			if strings.Contains(msg.Content, filter.Filter) {
+				trigger = filter.Filter
 				isIllegal = true
 				break
 			}
 		}
 
 		if isIllegal {
-			ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
-			ctx.Send(fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!", msg.Author.Mention()))
+			row := db.QueryRow("SELECT usestrikes, maxstrikes FROM discordguilds WHERE guildid = $1;", ctx.Guild.ID)
+
+			dbg := models.DiscordGuild{}
+
+			err := row.Scan(&dbg.UseStrikes, &dbg.MaxStrikes)
+			if err != nil {
+				return false
+			}
+
+			if dbg.UseStrikes {
+				dbs := models.Strikes{}
+
+				row := db.QueryRow("SELECT * FROM strikes WHERE guildid = $1 AND userid = $2;", ctx.Guild.ID, ctx.User.ID)
+				err := row.Scan(&dbs.Uid, &dbs.Guildid, &dbs.Userid, &dbs.Strikes)
+				if err != nil {
+					if err == sql.ErrNoRows {
+						if dbg.MaxStrikes < 2 {
+							ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
+							userch, _ := ctx.Session.UserChannelCreate(ctx.User.ID)
+							ctx.Session.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for triggering the filter.\n- %v", ctx.Guild.Name, trigger))
+							err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, ctx.User.ID, fmt.Sprintf("Triggering filter: %v", trigger), 0)
+							if err != nil {
+								ctx.Send(err.Error())
+								return true
+							}
+
+							embed := &discordgo.MessageEmbed{
+								Title:       "User banned",
+								Description: "Filter triggered",
+								Fields: []*discordgo.MessageEmbedField{
+									{
+										Name:   "Username",
+										Value:  fmt.Sprintf("%v", ctx.User.Mention()),
+										Inline: true,
+									},
+									{
+										Name:   "ID",
+										Value:  fmt.Sprintf("%v", ctx.User.ID),
+										Inline: true,
+									},
+								},
+								Color: dColorRed,
+							}
+
+							ctx.SendEmbed(embed)
+
+						} else {
+							ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
+							ctx.Send(fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!\nYou are currently at strike %v/%v", msg.Author.Mention(), dbs.Strikes+1, dbg.MaxStrikes))
+							db.Exec("INSERT INTO strikes(guildid, userid, strikes) VALUES ($1, $2, $3);", ctx.Guild.ID, ctx.User.ID, 1)
+						}
+					}
+				} else {
+					if dbs.Strikes+1 >= dbg.MaxStrikes {
+						ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
+						userch, _ := ctx.Session.UserChannelCreate(ctx.User.ID)
+						ctx.Session.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for triggering the filter.\n- %v", ctx.Guild.Name, trigger))
+						err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, ctx.User.ID, fmt.Sprintf("Triggering filter: %v", trigger), 0)
+						if err != nil {
+							ctx.Send(err.Error())
+							return true
+						}
+
+						embed := &discordgo.MessageEmbed{
+							Title:       "User banned",
+							Description: "Filter triggered",
+							Fields: []*discordgo.MessageEmbedField{
+								{
+									Name:   "Username",
+									Value:  fmt.Sprintf("%v", ctx.User.Mention()),
+									Inline: true,
+								},
+								{
+									Name:   "ID",
+									Value:  fmt.Sprintf("%v", ctx.User.ID),
+									Inline: true,
+								},
+							},
+							Color: dColorRed,
+						}
+
+						ctx.SendEmbed(embed)
+
+						_, err := db.Exec("DELETE FROM strikes WHERE userid = $1 AND guildid = $2;", ctx.User.ID, ctx.Guild.ID)
+						if err != nil {
+							fmt.Println(err)
+						}
+
+					} else {
+						ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
+						ctx.Send(fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!\nYou are currently at strike %v/%v", msg.Author.Mention(), dbs.Strikes+1, dbg.MaxStrikes))
+						db.Exec("UPDATE strikes SET strikes = $1 WHERE userid = $2 AND guildid = $3;", dbs.Strikes+1, ctx.User.ID, ctx.Guild.ID)
+					}
+				}
+
+			} else {
+				ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
+				ctx.Send(fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!", msg.Author.Mention()))
+			}
 		}
 	}
 
@@ -310,7 +463,7 @@ func doXp(ctx *service.Context) {
 		xpTime = dbu.Nextxpgaintime
 	}
 
-	diff := xpTime.Sub(currentTime)
+	diff := xpTime.Sub(currentTime.Add(time.Hour * 1))
 
 	if diff <= 0 {
 
@@ -321,19 +474,13 @@ func doXp(ctx *service.Context) {
 
 		newXp := Random(15, 26)
 
-		rows, err := db.Query("SELECT * FROM xpignoredchannels WHERE guildid = $1;", ctx.Guild.ID)
-		if err != nil {
-			return
-		}
+		row := db.QueryRow("SELECT channelid FROM xpignoredchannels WHERE channelid = $1;", ctx.Channel.ID)
 
-		for rows.Next() {
-			rows.Scan(
-				&igch.Uid,
-				&igch.Channelid,
-			)
-			if igch.Channelid == ctx.Channel.ID {
-				newXp = 0
-			}
+		err := row.Scan(
+			&igch.Channelid,
+		)
+		if err == nil {
+			newXp = 0
 		}
 		/*
 			row = db.QueryRow("SELECT * FROM xpignoreduser WHERE userid = $1;", ctx.User.ID)
@@ -380,11 +527,74 @@ func doXp(ctx *service.Context) {
 			}
 		} else {
 			if newXp != 0 {
-				db.Exec("UPDATE globalxp SET xp = $1 WHERE userid = $3;", lcxp.Xp+newXp, ctx.User.ID)
+				db.Exec("UPDATE globalxp SET xp = $1 WHERE userid = $2;", gbxp.Xp+newXp, ctx.User.ID)
 			}
 		}
 
 		db.Exec("UPDATE discordusers SET nextxpgaintime = $1 WHERE userid = $2;", currentTime.Add(time.Minute*time.Duration(2)), ctx.User.ID)
+	}
+}
+
+func SetupProfile(target *discordgo.User, ctx *service.Context, rep int) {
+
+	dbu := models.DiscordUser{}
+
+	currentTime := time.Now()
+
+	row := db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", target.ID)
+	err := row.Scan(
+		&dbu.Uid,
+		&dbu.Userid,
+		&dbu.Username,
+		&dbu.Discriminator,
+		&dbu.Xp,
+		&dbu.Nextxpgaintime,
+		&dbu.Xpexcluded,
+		&dbu.Reputation,
+		&dbu.Cangivereptime,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			db.Exec("INSERT INTO discordusers(userid, username, discriminator, xp, nextxpgaintime, xpexcluded, reputation, cangivereptime) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+				target.ID,
+				target.Username,
+				target.Discriminator,
+				0,
+				currentTime,
+				false,
+				rep,
+				currentTime,
+			)
+		}
+	}
+
+	lcxp := models.Localxp{}
+	gbxp := models.Globalxp{}
+
+	newXp := 0
+
+	row = db.QueryRow("SELECT * FROM localxp WHERE userid = $1 AND guildid = $2;", target.ID, ctx.Guild.ID)
+	err = row.Scan(
+		&lcxp.Uid,
+		&lcxp.Guildid,
+		&lcxp.Userid,
+		&lcxp.Xp,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			db.Exec("INSERT INTO localxp(guildid, userid, xp) VALUES($1, $2, $3);", ctx.Guild.ID, target.ID, newXp)
+		}
+	}
+	row = db.QueryRow("SELECT * FROM globalxp WHERE userid = $1;", target.ID)
+	err = row.Scan(
+		&gbxp.Uid,
+		&gbxp.Userid,
+		&gbxp.Xp,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			db.Exec("INSERT INTO globalxp(userid, xp) VALUES($1, $2);", target.ID, newXp)
+		}
 	}
 }
 

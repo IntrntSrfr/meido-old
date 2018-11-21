@@ -13,7 +13,7 @@ var SetUserRole = Command{
 	Description:   "Sets a users custom role. First provide the user, followed by the role.",
 	Triggers:      []string{"m?setuserrole"},
 	Usage:         "m?setuserrole 163454407999094786 kumiko",
-	RequiredPerms: discordgo.PermissionSendMessages,
+	RequiredPerms: discordgo.PermissionManageRoles,
 	Execute: func(args []string, ctx *service.Context) {
 
 		if len(args) < 3 {

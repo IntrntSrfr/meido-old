@@ -47,7 +47,7 @@ var Help = Command{
 						},
 						{
 							Name:  "Required permissions",
-							Value: fmt.Sprintf("%v", cmd.RequiredPerms),
+							Value: fmt.Sprintf("%v", permMap[cmd.RequiredPerms]),
 						},
 					},
 				}

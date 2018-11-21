@@ -1,7 +1,9 @@
 package events
 
 import (
+	"database/sql"
 	"fmt"
+	"meido-test/models"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -58,5 +60,17 @@ func GuildAvailableHandler(s *discordgo.Session, g *discordgo.GuildCreate) {
 		totalLoadTime := loadTimeEnd.Sub(loadTimeStart)
 		fmt.Println(fmt.Sprintf("Loaded %v in %v", g.Name, totalLoadTime.String()))
 	*/
+
+	dbg := models.DiscordGuild{}
+
+	row := db.QueryRow("SELECT guildid FROM discordguilds WHERE guildid = $1;", g.ID)
+
+	err := row.Scan(&dbg.Guildid)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			db.Exec("INSERT INTO discordguilds(guildid, usestrikes, maxstrikes) VALUES($1, $2, $3)", g.ID, false, 3)
+		}
+	}
+
 	fmt.Println(fmt.Sprintf("Loaded %v", g.Name))
 }

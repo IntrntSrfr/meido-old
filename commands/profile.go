@@ -45,10 +45,11 @@ var Profile = Command{
 			return
 		}
 
-		row := db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", targetUser.ID)
-
 		dbu := models.DiscordUser{}
+		lcxp := models.Localxp{}
+		gbxp := models.Globalxp{}
 
+		row := db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", targetUser.ID)
 		err = row.Scan(
 			&dbu.Uid,
 			&dbu.Userid,
@@ -59,20 +60,45 @@ var Profile = Command{
 			&dbu.Xpexcluded,
 			&dbu.Reputation,
 			&dbu.Cangivereptime)
-
 		if err != nil {
-			ctx.SendEmbed(&discordgo.MessageEmbed{Color: dColorRed, Description: "User not available"})
+			SetupProfile(targetUser, ctx, 0)
+			//ctx.SendEmbed(&discordgo.MessageEmbed{Color: dColorRed, Description: "User not available"})
+		}
+		row = db.QueryRow("SELECT xp FROM globalxp WHERE userid = $1", targetUser.ID)
+		err = row.Scan(
+			&gbxp.Xp,
+		)
+		if err != nil {
+			//ctx.SendEmbed(&discordgo.MessageEmbed{Color: dColorRed, Description: "User not available"})
+			return
+		}
+		row = db.QueryRow("SELECT xp FROM localxp WHERE userid = $1 AND guildid = $2", targetUser.ID, ctx.Guild.ID)
+		err = row.Scan(
+			&lcxp.Xp,
+		)
+		if err != nil {
+			//ctx.SendEmbed(&discordgo.MessageEmbed{Color: dColorRed, Description: "User not available"})
+			return
+		}
+
+		mem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
+		if err != nil {
 			return
 		}
 
 		embed := discordgo.MessageEmbed{
-			Color:     dColorGreen,
+			Color:     HighestColor(ctx.Guild, mem),
 			Title:     fmt.Sprintf("Profile for %v", targetUser.String()),
 			Thumbnail: &discordgo.MessageEmbedThumbnail{URL: targetUser.AvatarURL("1024")},
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
-					Name:   "Experience",
-					Value:  strconv.Itoa(dbu.Xp),
+					Name:   "Local xp",
+					Value:  strconv.Itoa(lcxp.Xp),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Global xp",
+					Value:  strconv.Itoa(gbxp.Xp),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
@@ -161,6 +187,7 @@ var Rep = Command{
 
 		dbtu := models.DiscordUser{}
 
+		row = db.QueryRow("SELECT * FROM discordusers WHERE userid = $1", targetUser.ID)
 		err = row.Scan(
 			&dbtu.Uid,
 			&dbtu.Userid,
@@ -171,15 +198,13 @@ var Rep = Command{
 			&dbtu.Xpexcluded,
 			&dbtu.Reputation,
 			&dbtu.Cangivereptime)
-
 		if err != nil {
-			return
+			SetupProfile(targetUser, ctx, 1)
+			//ctx.SendEmbed(&discordgo.MessageEmbed{Color: dColorRed, Description: "User not available"})
 		}
 
-		_, err = db.Exec("UPDATE discordusers SET reputation = $1, cangivereptime = $2 WHERE userid = $3", dbtu.Reputation+1, currentTime.Add(time.Hour*time.Duration(24)), dbtu.Userid)
-		if err != nil {
-			return
-		}
+		db.Exec("UPDATE discordusers SET reputation = $1 WHERE userid = $2", dbtu.Reputation+1, dbtu.Userid)
+		db.Exec("UPDATE discordusers SET cangivereptime = $1 WHERE userid = $2", currentTime.Add(time.Hour*time.Duration(24)), dbu.Userid)
 
 		ctx.SendEmbed(&discordgo.MessageEmbed{Color: dColorGreen, Description: fmt.Sprintf("%v awarded %v a reputation point!", u.Mention(), targetUser.Mention())})
 	},
@@ -236,15 +261,15 @@ var Repleaderboard = Command{
 	},
 }
 
-var Xpleaderboard = Command{
+var XpLeaderboard = Command{
 	Name:          "xpleaderboard",
-	Description:   "Gives a user a reputation point or checks whether you can give it or not.",
+	Description:   "Checks local leaderboard.",
 	Triggers:      []string{"m?xplb"},
 	Usage:         "m?xplb",
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
-		rows, err := db.Query("SELECT * FROM discordusers WHERE xp > 0 ORDER BY xp DESC LIMIT 10 ")
+		rows, err := db.Query("SELECT userid, xp FROM localxp WHERE xp > 0 AND guildid = $1 ORDER BY xp DESC LIMIT 10;", ctx.Guild.ID)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -259,25 +284,74 @@ var Xpleaderboard = Command{
 		place := 1
 
 		for rows.Next() {
-			dbu := models.DiscordUser{}
+			dbxp := models.Localxp{}
 
 			err = rows.Scan(
-				&dbu.Uid,
-				&dbu.Userid,
-				&dbu.Username,
-				&dbu.Discriminator,
-				&dbu.Xp,
-				&dbu.Nextxpgaintime,
-				&dbu.Xpexcluded,
-				&dbu.Reputation,
-				&dbu.Cangivereptime)
+				&dbxp.Userid,
+				&dbxp.Xp,
+			)
 
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
 
-			leaderboard += fmt.Sprintf("#%v - %v#%v - %vxp\n", place, dbu.Username, dbu.Discriminator, dbu.Xp)
+			user, err := ctx.Session.User(dbxp.Userid)
+			if err != nil {
+				return
+			}
+
+			leaderboard += fmt.Sprintf("#%v - %v#%v - %vxp\n", place, user.Username, user.Discriminator, dbxp.Xp)
+			place++
+		}
+		leaderboard += "```"
+
+		ctx.Send(leaderboard)
+
+	},
+}
+
+var GlobalXpLeaderboard = Command{
+	Name:          "globalxpleaderboard",
+	Description:   "Checks the global xp leaderboard.",
+	Triggers:      []string{"m?gxplb"},
+	Usage:         "m?gxplb",
+	RequiredPerms: discordgo.PermissionSendMessages,
+	Execute: func(args []string, ctx *service.Context) {
+
+		rows, err := db.Query("SELECT userid, xp FROM globalxp WHERE xp > 0 ORDER BY xp DESC LIMIT 10;")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if rows.Err() != nil {
+			fmt.Println(rows.Err())
+		}
+
+		leaderboard := "```\n"
+
+		place := 1
+
+		for rows.Next() {
+			dbgxp := models.Globalxp{}
+
+			err = rows.Scan(
+				&dbgxp.Userid,
+				&dbgxp.Xp,
+			)
+
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			user, err := ctx.Session.User(dbgxp.Userid)
+			if err != nil {
+				return
+			}
+
+			leaderboard += fmt.Sprintf("#%v - %v#%v - %vxp\n", place, user.Username, user.Discriminator, dbgxp.Xp)
 			place++
 		}
 		leaderboard += "```"
