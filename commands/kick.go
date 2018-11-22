@@ -12,7 +12,7 @@ var Kick = Command{
 	Name:          "kick",
 	Description:   "kick a user. Reason and prune days is optional.",
 	Triggers:      []string{"m?kick", "m?k", ".k"},
-	Usage:         "m?coolnamebro my name is shit",
+	Usage:         "m?k @internet surfer#0001\n.k 163454407999094786",
 	RequiredPerms: discordgo.PermissionKickMembers,
 	Execute: func(args []string, ctx *service.Context) {
 

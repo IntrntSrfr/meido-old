@@ -57,10 +57,10 @@ var Inrole = Command{
 			lenlist = len(memberList)
 		}
 
-		board := fmt.Sprintf("```\nFirst %v users in **%v**\n", lenlist, selectedRole.Name)
+		board := fmt.Sprintf("```\nFirst %v users in role %v\n", lenlist, selectedRole.Name)
 		for i := 0; i < lenlist; i++ {
 			m := memberList[i]
-			board += fmt.Sprintf("- %v", m.User.String())
+			board += fmt.Sprintf("- %v\n", m.User.String())
 		}
 		board += "```"
 		ctx.Send(board)

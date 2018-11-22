@@ -48,6 +48,33 @@ var Ban = Command{
 			}
 		}
 
+		if targetUser == nil {
+
+			err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, targetUser.ID, fmt.Sprintf("%v#%v - %v", ctx.Message.Author.Username, ctx.Message.Author.Discriminator, reason), pruneDays)
+			if err != nil {
+				ctx.Send(err.Error())
+				return
+			}
+
+			embed := &discordgo.MessageEmbed{
+				Title: "User banned",
+				Color: dColorRed,
+				Fields: []*discordgo.MessageEmbedField{
+					{
+						Name:   "Username",
+						Value:  fmt.Sprintf("%v", targetUser.Mention()),
+						Inline: true,
+					},
+					{
+						Name:   "ID",
+						Value:  fmt.Sprintf("%v", targetUser.ID),
+						Inline: true,
+					},
+				},
+			}
+			ctx.SendEmbed(embed)
+		}
+
 		if targetUser.ID == ctx.Message.Author.ID {
 			ctx.Send("no")
 			return

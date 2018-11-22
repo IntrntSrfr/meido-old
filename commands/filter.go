@@ -15,7 +15,7 @@ var FilterWord = Command{
 	Name:          "filterword",
 	Description:   "filters stuff.",
 	Triggers:      []string{"m?filterword", "m?fw"},
-	Usage:         "m?filterword\nm?fw jeff\nm?filterword jeff",
+	Usage:         "m?fw jeff\nm?filterword jeff",
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -81,6 +81,7 @@ var FilterInfo = Command{
 
 		embed := discordgo.MessageEmbed{
 			Title: "Filter info",
+			Color: dColorWhite,
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
 					Name:   "Ignored channels",

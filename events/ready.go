@@ -6,16 +6,18 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func ReadyHandler(s *discordgo.Session, r *discordgo.Ready) {
-	/*
-		data := discordgo.UpdateStatusData{
-			Game: &discordgo.Game{
-				Type: discordgo.GameTypeWatching,
-				Name: "22 jump street",
-			},
-		}
+var totalUsers = 0
 
-		s.UpdateStatusComplex(data)
-	*/
+func ReadyHandler(s *discordgo.Session, r *discordgo.Ready) {
+/* 
+	data := discordgo.UpdateStatusData{
+		Game: &discordgo.Game{
+			Type: discordgo.GameTypeWatching,
+			Name: fmt.Sprintf("over all %v of you"),
+		},
+	}
+
+	s.UpdateStatusComplex(data)
+ */
 	fmt.Println(fmt.Sprintf("Logged in as %v.", r.User.String()))
 }
