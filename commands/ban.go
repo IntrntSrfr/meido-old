@@ -44,35 +44,9 @@ var Ban = Command{
 		} else {
 			targetUser, err = ctx.Session.User(args[1])
 			if err != nil {
+				ctx.Send("error occured: %v", err)
 				return
 			}
-		}
-
-		if targetUser == nil {
-
-			err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, targetUser.ID, fmt.Sprintf("%v#%v - %v", ctx.Message.Author.Username, ctx.Message.Author.Discriminator, reason), pruneDays)
-			if err != nil {
-				ctx.Send(err.Error())
-				return
-			}
-
-			embed := &discordgo.MessageEmbed{
-				Title: "User banned",
-				Color: dColorRed,
-				Fields: []*discordgo.MessageEmbedField{
-					{
-						Name:   "Username",
-						Value:  fmt.Sprintf("%v", targetUser.Mention()),
-						Inline: true,
-					},
-					{
-						Name:   "ID",
-						Value:  fmt.Sprintf("%v", targetUser.ID),
-						Inline: true,
-					},
-				},
-			}
-			ctx.SendEmbed(embed)
 		}
 
 		if targetUser.ID == ctx.Message.Author.ID {
@@ -85,26 +59,35 @@ var Ban = Command{
 			return
 		}
 
+		inGuild := true
+
 		targetMem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
 		if err != nil {
-			return
+			inGuild = false
 		}
 
-		if HighestRole(ctx.Guild, currentMem) <= HighestRole(ctx.Guild, targetMem) {
-			ctx.Send("no")
-			return
+		if inGuild {
+			if HighestRole(ctx.Guild, currentMem) <= HighestRole(ctx.Guild, targetMem) {
+				ctx.Send("no")
+				return
+			}
 		}
+
+		okCh := true
 
 		userchannel, err := ctx.Session.UserChannelCreate(targetUser.ID)
 		if err != nil {
-			return
+			okCh = false
 		}
 
-		if reason == "" {
-			ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been banned from %v.", ctx.Guild.Name))
+		if okCh {
 
-		} else {
-			ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been banned from %v for the following reason: %v", ctx.Guild.Name, reason))
+			if reason == "" {
+				ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been banned from %v.", ctx.Guild.Name))
+
+			} else {
+				ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been banned from %v for the following reason: %v", ctx.Guild.Name, reason))
+			}
 		}
 
 		err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, targetUser.ID, fmt.Sprintf("%v#%v - %v", ctx.Message.Author.Username, ctx.Message.Author.Discriminator, reason), pruneDays)

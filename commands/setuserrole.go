@@ -20,7 +20,7 @@ var SetUserRole = Command{
 			return
 		}
 
-		perms, err := ctx.Session.UserChannelPermissions(ctx.Message.Author.ID, ctx.Channel.ID)
+		perms, err := ctx.Session.State.UserChannelPermissions(ctx.Message.Author.ID, ctx.Channel.ID)
 		if err != nil {
 			return
 		}

@@ -54,15 +54,8 @@ var CoolNameBro = Command{
 }
 
 func badName(u *discordgo.Member) bool {
-
 	if u.Nick != "" {
-		if u.Nick[0] < 48 {
-			return true
-		}
+		return u.Nick[0] < 48
 	}
-	if u.User.Username[0] < 48 {
-		return true
-	}
-	return false
-
+	return u.User.Username[0] < 48
 }

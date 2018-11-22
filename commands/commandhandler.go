@@ -73,11 +73,6 @@ var (
 )
 
 func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
-	comms.RegisterCommand(About)
-	comms.RegisterCommand(Avatar)
-	comms.RegisterCommand(Ban)
-	comms.RegisterCommand(ClearAFK)
-	comms.RegisterCommand(CoolNameBro)
 
 	comms.RegisterCommand(FilterWord)
 	comms.RegisterCommand(FilterWordList)
@@ -87,20 +82,27 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(UseStrikes)
 	comms.RegisterCommand(SetMaxStrikes)
 
-	comms.RegisterCommand(Help)
-	comms.RegisterCommand(Inrole)
+	comms.RegisterCommand(Ban)
+	comms.RegisterCommand(Unban)
+	comms.RegisterCommand(ClearAFK)
+	comms.RegisterCommand(CoolNameBro)
 	comms.RegisterCommand(Kick)
 	comms.RegisterCommand(Lockdown)
+	comms.RegisterCommand(Unlock)
+	comms.RegisterCommand(SetUserRole)
+
+	comms.RegisterCommand(About)
+	comms.RegisterCommand(Avatar)
 	comms.RegisterCommand(MyRole)
 	comms.RegisterCommand(Ping)
-	//comms.RegisterCommand(Role)
-	//comms.RegisterCommand(Server)
-	comms.RegisterCommand(SetUserRole)
 	comms.RegisterCommand(Umr)
-	comms.RegisterCommand(Unlock)
-	//comms.RegisterCommand(User)
+	comms.RegisterCommand(Help)
+	comms.RegisterCommand(Inrole)
 	comms.RegisterCommand(WithNick)
 	comms.RegisterCommand(WithTag)
+	//comms.RegisterCommand(Role)
+	//comms.RegisterCommand(Server)
+	//comms.RegisterCommand(User)
 
 	comms.RegisterCommand(Profile)
 	comms.RegisterCommand(Rep)
@@ -221,11 +223,11 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	perms, err := s.UserChannelPermissions(m.Author.ID, ch.ID)
+	perms, err := s.State.UserChannelPermissions(m.Author.ID, ch.ID)
 	if err != nil {
 		return
 	}
-	botPerms, err := s.UserChannelPermissions(s.State.User.ID, ch.ID)
+	botPerms, err := s.State.UserChannelPermissions(s.State.User.ID, ch.ID)
 	if err != nil {
 		return
 	}
@@ -253,23 +255,27 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if cmd, ok := comms[triggerCommand]; ok {
 
 			isOwner := false
-
-			if cmd.RequiresOwner == true {
-				for _, val := range ownerIds {
-					if m.Author.ID == val {
-						isOwner = true
-					}
+			/*
+				if cmd.RequiresOwner == true {
+				} */
+			for _, val := range ownerIds {
+				if m.Author.ID == val {
+					isOwner = true
 				}
+			}
+			if cmd.RequiresOwner {
 				if !isOwner {
 					context.Send("Owner only.")
 					return
 				}
 			}
+			/*
+				if !isOwner {
+				} */
 
-			if !isOwner {
-				if perms&cmd.RequiredPerms == 0 {
-					return
-				}
+			if perms&cmd.RequiredPerms == 0 && perms&discordgo.PermissionAdministrator == 0 {
+				//fmt.Println(perms, cmd.RequiredPerms, permMap[cmd.RequiredPerms], perms&cmd.RequiredPerms)
+				return
 			}
 
 			if botPerms&cmd.RequiredPerms == 0 {
