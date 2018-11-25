@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"database/sql"
 	"fmt"
 	"meido-test/models"
 	"meido-test/service"
@@ -81,13 +82,8 @@ var Profile = Command{
 			return
 		}
 
-		mem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
-		if err != nil {
-			return
-		}
-
 		embed := discordgo.MessageEmbed{
-			Color:     HighestColor(ctx.Guild, mem),
+			Color:     UserColor(ctx.Guild, targetUser.ID),
 			Title:     fmt.Sprintf("Profile for %v", targetUser.String()),
 			Thumbnail: &discordgo.MessageEmbedThumbnail{URL: targetUser.AvatarURL("1024")},
 			Fields: []*discordgo.MessageEmbedField{
@@ -358,5 +354,56 @@ var GlobalXpLeaderboard = Command{
 
 		ctx.Send(leaderboard)
 
+	},
+}
+
+var XpIgnoreChannel = Command{
+	Name:          "xpignorechannel",
+	Description:   "Adds or removes a channel to or from the xp ignored list.",
+	Triggers:      []string{"m?xpignorechannel", "m?xpigch"},
+	Usage:         "m?xpigch\nm?xpigch 123123123123",
+	RequiredPerms: discordgo.PermissionManageChannels,
+	Execute: func(args []string, ctx *service.Context) {
+
+		var (
+			err     error
+			channel *discordgo.Channel
+			ch      string
+		)
+
+		if len(args) > 1 {
+			if strings.HasPrefix(args[1], "<#") && strings.HasSuffix(args[1], ">") {
+				ch = args[1]
+				ch = ch[2 : len(ch)-1]
+			} else {
+				ch = args[1]
+			}
+			channel, err = ctx.Session.Channel(ch)
+			if err != nil {
+				ctx.Send("Invalid channel.")
+				return
+			}
+
+			if channel.GuildID != ctx.Guild.ID {
+				ctx.Send("Channel not found.")
+				return
+			}
+		} else {
+			channel = ctx.Channel
+		}
+
+		dbigch := models.Xpignoredchannel{}
+
+		row := db.QueryRow("SELECT channelid FROM xpignoredchannels WHERE channelid = $1;", channel.ID)
+		err = row.Scan(&dbigch.Channelid)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				db.Exec("INSERT INTO xpignoredchannels (channelid) VALUES ($1);", channel.ID)
+				ctx.Send(fmt.Sprintf("Added %v to the xp ignore list.", channel.Mention()))
+			}
+		} else {
+			db.Exec("DELETE FROM xpignoredchannels WHERE channelid=$1;", channel.ID)
+			ctx.Send(fmt.Sprintf("Removed %v from the xp ignore list.", channel.Mention()))
+		}
 	},
 }

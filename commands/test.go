@@ -17,13 +17,8 @@ var Test = Command{
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
 
-		mem, err := ctx.Session.GuildMember(ctx.Guild.ID, ctx.User.ID)
-		if err != nil {
-			return
-		}
-
-		ctx.Send(fmt.Sprintf("Top role position: %v", HighestRole(ctx.Guild, mem)))
-		ctx.Send(fmt.Sprintf("Top color: #" + FullHex(fmt.Sprintf("%X", HighestColor(ctx.Guild, mem)))))
+		ctx.Send(fmt.Sprintf("Top role position: %v", HighestRole(ctx.Guild, ctx.User.ID)))
+		ctx.Send(fmt.Sprintf("Top color: #" + FullHex(fmt.Sprintf("%X", UserColor(ctx.Guild, ctx.User.ID)))))
 
 	},
 }

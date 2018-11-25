@@ -16,22 +16,53 @@ var Help = Command{
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
-		comms := GetCommandMap()
-
 		if len(args) < 2 {
 
-			list := "```\n"
+			list := "```css\nList of commands:\n"
 			for _, val := range comms {
-				list += val.Name + "\n"
+				t := strings.Join(val.Triggers, ", ")
+				if val.RequiresOwner {
+					list += fmt.Sprintf("%v - [%v] (OWNER ONLY)\n", val.Name, t)
+				} else if val.RequiredPerms == discordgo.PermissionSendMessages {
+					list += fmt.Sprintf("%v - [%v]\n", val.Name, t)
+				} else {
+					list += fmt.Sprintf("%v - [%v] (%v)\n", val.Name, t, permMap[val.RequiredPerms])
+				}
 			}
 			list += "```"
 
-			ctx.Send(list)
+			_, err := ctx.Send(list)
+			if err != nil {
+				ctx.Send(err)
+			}
 		} else {
 
 			comm := args[1]
 
-			if cmd, ok := comms[comm]; ok {
+			triggerCommand := ""
+			for _, val := range comms {
+
+				if strings.ToLower(comm) == strings.ToLower(val.Name) {
+					triggerCommand = val.Name
+					break
+				}
+
+				if triggerCommand == "" {
+					for _, com := range val.Triggers {
+						if strings.ToLower(comm) == strings.ToLower(com) {
+							triggerCommand = val.Name
+						}
+					}
+				}
+			}
+
+			if cmd, ok := comms[triggerCommand]; ok {
+				perm := ""
+				if cmd.RequiredPerms == discordgo.PermissionSendMessages {
+					perm = "None"
+				} else {
+					perm = permMap[cmd.RequiredPerms]
+				}
 				embed := discordgo.MessageEmbed{
 					Title:       cmd.Name,
 					Description: cmd.Description,
@@ -47,7 +78,7 @@ var Help = Command{
 						},
 						{
 							Name:  "Required permissions",
-							Value: fmt.Sprintf("%v", permMap[cmd.RequiredPerms]),
+							Value: fmt.Sprintf("%v", perm),
 						},
 					},
 				}

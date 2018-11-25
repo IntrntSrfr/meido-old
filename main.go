@@ -58,7 +58,7 @@ func (b *Bot) Run() {
 
 	defer db.Close()
 
-	commands.Initialize(&config.OwnerIds, &config.DmLogChannels, db)
+	commands.Initialize(client, &config.OwnerIds, &config.DmLogChannels, db)
 	events.Initialize(db)
 
 	addHandlers(client)

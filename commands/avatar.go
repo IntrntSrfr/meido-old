@@ -33,11 +33,11 @@ var Avatar = Command{
 		if targetUser == nil {
 			targetUser = ctx.Message.Author
 		}
-
-		mem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
-		if err != nil {
-			return
-		}
+		/*
+			mem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
+			if err != nil {
+				return
+			} */
 
 		if targetUser.Avatar == "" {
 			ctx.SendEmbed(&discordgo.MessageEmbed{
@@ -46,7 +46,7 @@ var Avatar = Command{
 			})
 		} else {
 			ctx.SendEmbed(&discordgo.MessageEmbed{
-				Color: HighestColor(ctx.Guild, mem),
+				Color: UserColor(ctx.Guild, targetUser.ID),
 				Title: targetUser.String(),
 				Image: &discordgo.MessageEmbedImage{URL: targetUser.AvatarURL("1024")},
 			})

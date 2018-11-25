@@ -39,9 +39,6 @@ var Inrole = Command{
 		var memberList []*discordgo.Member
 
 		for _, u := range ctx.Guild.Members {
-			if len(memberList) > 20 {
-				break
-			}
 			for _, r := range u.Roles {
 				if selectedRole.ID == r {
 					memberList = append(memberList, u)
@@ -57,10 +54,11 @@ var Inrole = Command{
 			lenlist = len(memberList)
 		}
 
-		board := fmt.Sprintf("```\nFirst %v users in role %v\n", lenlist, selectedRole.Name)
+		board := fmt.Sprintf("```\nTotal users in role %v - %v\n", selectedRole.Name, len(memberList))
+		board += fmt.Sprintf("First %v users in role %v\n", lenlist, selectedRole.Name)
 		for i := 0; i < lenlist; i++ {
 			m := memberList[i]
-			board += fmt.Sprintf("- %v\n", m.User.String())
+			board += fmt.Sprintf("- %v\t(%v)\n", m.User.String(), m.User.ID)
 		}
 		board += "```"
 		ctx.Send(board)

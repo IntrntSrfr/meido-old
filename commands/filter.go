@@ -58,7 +58,8 @@ var FilterInfo = Command{
 		if err != nil {
 			if err == sql.ErrNoRows {
 			} else {
-				ctx.Send("error occured", err)
+				ctx.Send("error occured: " + err.Error())
+				return
 			}
 		}
 
@@ -79,10 +80,31 @@ var FilterInfo = Command{
 			filterlist = "None"
 		}
 
+		row := db.QueryRow("SELECT usestrikes, maxstrikes FROM discordguilds WHERE guildid=$1;", ctx.Guild.ID)
+		dbg := models.DiscordGuild{}
+		err = row.Scan(&dbg.UseStrikes, &dbg.MaxStrikes)
+		if err != nil {
+			if err == sql.ErrNoRows {
+			} else {
+				ctx.Send("error occured: " + err.Error())
+				return
+			}
+		}
+
 		embed := discordgo.MessageEmbed{
 			Title: "Filter info",
 			Color: dColorWhite,
 			Fields: []*discordgo.MessageEmbedField{
+				&discordgo.MessageEmbedField{
+					Name:   "Strikes currently enabled",
+					Value:  fmt.Sprint(dbg.UseStrikes),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Max strikes",
+					Value:  fmt.Sprint(dbg.MaxStrikes),
+					Inline: true,
+				},
 				&discordgo.MessageEmbedField{
 					Name:   "Ignored channels",
 					Value:  filterlist,
@@ -269,6 +291,46 @@ var FilterIgnoreChannel = Command{
 		} else {
 			db.Exec("DELETE FROM filterignorechannels WHERE guildid = $1 AND channelid = $2;", ctx.Guild.ID, gch.ID)
 			ctx.Send(fmt.Sprintf("Removed <#%v> from the list of filter ignored channels.", gch.ID))
+		}
+	},
+}
+
+var ClearStrikes = Command{
+	Name:          "clearstrikes",
+	Description:   "Clears the strikes on a user.",
+	Triggers:      []string{"m?clearstrikes", "m?cs"},
+	Usage:         "m?clearstrikes @internet surfer#0001\nm?cs 163454407999094786",
+	RequiredPerms: discordgo.PermissionManageMessages,
+	//RequiresOwner: true,
+	Execute: func(args []string, ctx *service.Context) {
+
+		if len(args) < 2 {
+			return
+		}
+
+		var (
+			targetUser *discordgo.User
+			err        error
+		)
+		if len(ctx.Message.Mentions) >= 1 {
+			targetUser = ctx.Message.Mentions[0]
+		} else {
+			targetUser, err = ctx.Session.User(args[1])
+			if err != nil {
+				return
+			}
+		}
+
+		res, err := db.Exec("DELETE FROM strikes WHERE userid = $1 AND guildid = $2;", targetUser.ID, ctx.Guild.ID)
+		if err != nil {
+			ctx.Send("error occured :" + err.Error())
+			return
+		}
+		ar, _ := res.RowsAffected()
+		if ar < 1 {
+			ctx.Send("User has no strikes.")
+		} else {
+			ctx.Send(fmt.Sprintf("Removed strikes from user: %v", targetUser.Mention()))
 		}
 	},
 }

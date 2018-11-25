@@ -54,23 +54,9 @@ var Ban = Command{
 			return
 		}
 
-		currentMem, err := ctx.Session.GuildMember(ctx.Guild.ID, ctx.User.ID)
-		if err != nil {
+		if HighestRole(ctx.Guild, ctx.User.ID) <= HighestRole(ctx.Guild, targetUser.ID) {
+			ctx.Send("no")
 			return
-		}
-
-		inGuild := true
-
-		targetMem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
-		if err != nil {
-			inGuild = false
-		}
-
-		if inGuild {
-			if HighestRole(ctx.Guild, currentMem) <= HighestRole(ctx.Guild, targetMem) {
-				ctx.Send("no")
-				return
-			}
 		}
 
 		okCh := true

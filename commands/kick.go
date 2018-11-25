@@ -39,30 +39,25 @@ var Kick = Command{
 			return
 		}
 
-		currentMem, err := ctx.Session.GuildMember(ctx.Guild.ID, ctx.User.ID)
-		if err != nil {
-			return
-		}
-		targetMem, err := ctx.Session.GuildMember(ctx.Guild.ID, targetUser.ID)
-		if err != nil {
-			return
-		}
-
-		if HighestRole(ctx.Guild, currentMem) <= HighestRole(ctx.Guild, targetMem) {
+		if HighestRole(ctx.Guild, ctx.User.ID) <= HighestRole(ctx.Guild, targetUser.ID) {
 			ctx.Send("no")
 			return
 		}
 
+		okCh := true
+
 		userchannel, err := ctx.Session.UserChannelCreate(targetUser.ID)
 		if err != nil {
-			return
+			okCh = false
 		}
 
-		if reason == "" {
-			ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been kicked from %v.", ctx.Guild.Name))
+		if okCh {
+			if reason == "" {
+				ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been kicked from %v.", ctx.Guild.Name))
 
-		} else {
-			ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been kicked from %v for the following reason: %v", ctx.Guild.Name, reason))
+			} else {
+				ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been kicked from %v for the following reason: %v", ctx.Guild.Name, reason))
+			}
 		}
 
 		err = ctx.Session.GuildMemberDeleteWithReason(ctx.Guild.ID, targetUser.ID, fmt.Sprintf("%v#%v - %v", ctx.Message.Author.Username, ctx.Message.Author.Discriminator, reason))

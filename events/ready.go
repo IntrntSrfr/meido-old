@@ -9,15 +9,16 @@ import (
 var totalUsers = 0
 
 func ReadyHandler(s *discordgo.Session, r *discordgo.Ready) {
-/* 
-	data := discordgo.UpdateStatusData{
-		Game: &discordgo.Game{
-			Type: discordgo.GameTypeWatching,
-			Name: fmt.Sprintf("over all %v of you"),
-		},
-	}
+	/*
+		data := discordgo.UpdateStatusData{
+			Game: &discordgo.Game{
+				Type: discordgo.GameTypeWatching,
+				Name: fmt.Sprintf("over all %v of you"),
+			},
+		}
 
-	s.UpdateStatusComplex(data)
- */
+		s.UpdateStatusComplex(data)
+	*/
+	totalUsers = 0
 	fmt.Println(fmt.Sprintf("Logged in as %v.", r.User.String()))
 }

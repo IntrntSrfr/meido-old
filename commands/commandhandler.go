@@ -64,7 +64,16 @@ var permMap = map[int]string{
 	1073741824: "manage emojis",
 }
 
+var verificationMap = map[int]string{
+	0: "Unrestricted.",
+	1: "Email verification.",
+	2: "Email verification and account must be at least 5 minutes old.",
+	3: "Email verification, account must be at least 5 minutes old and user must have been on server for 10 minutes.",
+	4: "Verified phone to Discord account.",
+}
+
 var (
+	client        *discordgo.Session
 	startTime     = time.Now()
 	comms         = Commandmap{}
 	db            *sql.DB
@@ -72,7 +81,7 @@ var (
 	ownerIds      []string
 )
 
-func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
+func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 
 	comms.RegisterCommand(FilterWord)
 	comms.RegisterCommand(FilterWordList)
@@ -81,6 +90,7 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(ClearFilter)
 	comms.RegisterCommand(UseStrikes)
 	comms.RegisterCommand(SetMaxStrikes)
+	comms.RegisterCommand(ClearStrikes)
 
 	comms.RegisterCommand(Ban)
 	comms.RegisterCommand(Unban)
@@ -101,7 +111,7 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(WithNick)
 	comms.RegisterCommand(WithTag)
 	//comms.RegisterCommand(Role)
-	//comms.RegisterCommand(Server)
+	comms.RegisterCommand(Server)
 	//comms.RegisterCommand(User)
 
 	comms.RegisterCommand(Profile)
@@ -109,11 +119,13 @@ func Initialize(OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
 	comms.RegisterCommand(Repleaderboard)
 	comms.RegisterCommand(XpLeaderboard)
 	comms.RegisterCommand(GlobalXpLeaderboard)
+	comms.RegisterCommand(XpIgnoreChannel)
 
 	comms.RegisterCommand(Test)
 	comms.RegisterCommand(Dm)
 	comms.RegisterCommand(Msg)
 
+	client = s
 	db = DB
 	dmLogChannels = *DmLogChannels
 	ownerIds = *OwnerIds
@@ -132,11 +144,11 @@ func (cmap *Commandmap) RegisterCommand(cmd Command) {
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	context := service.NewContext(s, m.Message)
-
 	if m.Author.Bot {
 		return
 	}
+
+	context := service.NewContext(s, m.Message)
 
 	ch, err := s.Channel(m.ChannelID)
 	if err != nil {
@@ -179,26 +191,16 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				}
 			}
 		} else {
-
-			var dmembed discordgo.MessageEmbed
+			dmembed := discordgo.MessageEmbed{
+				Color:       dColorWhite,
+				Title:       fmt.Sprintf("Message from %v", m.Author.String()),
+				Description: m.Content,
+				Footer:      &discordgo.MessageEmbedFooter{Text: m.Author.ID},
+				Timestamp:   string(m.Timestamp),
+			}
 
 			if len(m.Attachments) > 0 {
-				dmembed = discordgo.MessageEmbed{
-					Color:       dColorWhite,
-					Title:       fmt.Sprintf("Message from %v", m.Author.String()),
-					Description: m.Content,
-					Image:       &discordgo.MessageEmbedImage{URL: m.Attachments[0].URL},
-					Footer:      &discordgo.MessageEmbedFooter{Text: m.Author.ID},
-					Timestamp:   string(m.Timestamp),
-				}
-			} else {
-				dmembed = discordgo.MessageEmbed{
-					Color:       dColorWhite,
-					Title:       fmt.Sprintf("Message from %v", m.Author.String()),
-					Description: m.Content,
-					Footer:      &discordgo.MessageEmbedFooter{Text: m.Author.ID},
-					Timestamp:   string(m.Timestamp),
-				}
+				dmembed.Image = &discordgo.MessageEmbedImage{URL: m.Attachments[0].URL}
 			}
 
 			for i := range dmLogChannels {
@@ -472,20 +474,19 @@ func doXp(ctx *service.Context) {
 	diff := xpTime.Sub(currentTime.Add(time.Hour * 1))
 
 	if diff <= 0 {
-
-		igch := models.Xpignoredchannel{}
 		//igu := models.Xpignoreduser{}
 		lcxp := models.Localxp{}
 		gbxp := models.Globalxp{}
 
 		newXp := Random(15, 26)
 
-		row := db.QueryRow("SELECT channelid FROM xpignoredchannels WHERE channelid = $1;", ctx.Channel.ID)
+		row := db.QueryRow("SELECT COUNT(*) FROM xpignoredchannels WHERE channelid = $1;", ctx.Channel.ID)
 
+		count := 0
 		err := row.Scan(
-			&igch.Channelid,
+			&count,
 		)
-		if err == nil {
+		if count > 0 {
 			newXp = 0
 		}
 		/*
@@ -517,7 +518,7 @@ func doXp(ctx *service.Context) {
 				db.Exec("INSERT INTO localxp(guildid, userid, xp) VALUES($1, $2, $3);", ctx.Guild.ID, ctx.User.ID, newXp)
 			}
 		} else {
-			if newXp != 0 {
+			if !isIgnored {
 				db.Exec("UPDATE localxp SET xp = $1 WHERE guildid = $2 AND userid = $3;", lcxp.Xp+newXp, ctx.Guild.ID, ctx.User.ID)
 			}
 		}
@@ -532,7 +533,7 @@ func doXp(ctx *service.Context) {
 				db.Exec("INSERT INTO globalxp(userid, xp) VALUES($1, $2);", ctx.User.ID, newXp)
 			}
 		} else {
-			if newXp != 0 {
+			if !isIgnored {
 				db.Exec("UPDATE globalxp SET xp = $1 WHERE userid = $2;", gbxp.Xp+newXp, ctx.User.ID)
 			}
 		}
@@ -604,15 +605,20 @@ func SetupProfile(target *discordgo.User, ctx *service.Context, rep int) {
 	}
 }
 
-func HighestRole(g *discordgo.Guild, u *discordgo.Member) int {
+func HighestRole(g *discordgo.Guild, userID string) int {
 
-	if u.User.ID == g.OwnerID {
+	user, err := client.GuildMember(g.ID, userID)
+	if err != nil {
+		return -1
+	}
+
+	if user.User.ID == g.OwnerID {
 		return math.MaxInt64
 	}
 
 	topRole := 0
 
-	for _, val := range u.Roles {
+	for _, val := range user.Roles {
 		for _, role := range g.Roles {
 			if val == role.ID {
 				if role.Position > topRole {
@@ -625,38 +631,27 @@ func HighestRole(g *discordgo.Guild, u *discordgo.Member) int {
 	return topRole
 }
 
-func HighestColor(g *discordgo.Guild, u *discordgo.Member) int {
+func UserColor(g *discordgo.Guild, userID string) int {
 
-	topRole := 0
-	topColor := 0
-	groles := discordgo.Roles(g.Roles)
-	userroles := []*discordgo.Role{}
+	member, err := client.GuildMember(g.ID, userID)
+	if err != nil {
+		return 0
+	}
 
-	for _, grole := range groles {
-		for _, urole := range u.Roles {
-			if urole == grole.ID {
-				userroles = append(userroles, grole)
+	roles := discordgo.Roles(g.Roles)
+	sort.Sort(roles)
+
+	for _, role := range roles {
+		for _, roleID := range member.Roles {
+			if role.ID == roleID {
+				if role.Color != 0 {
+					return role.Color
+				}
 			}
 		}
 	}
 
-	groles = discordgo.Roles(userroles)
-	sort.Sort(groles)
-	sort.Sort(sort.Reverse(groles))
-
-	for _, grole := range groles {
-
-		if grole.Position > topRole {
-
-			topRole = grole.Position
-
-			if grole.Color != 0 {
-				topColor = grole.Color
-			}
-		}
-	}
-
-	return topColor
+	return 0
 }
 
 func FullHex(hex string) string {
