@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"meido-test/service"
-	"runtime"
 	"strconv"
 	"time"
 
@@ -52,12 +51,9 @@ var About = Command{
 			totalCommands = 0
 		}
 
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-
 		thisTime := time.Now()
 
-		timespan := thisTime.Sub(startTime)
+		timespan := thisTime.Sub(botStartTime)
 
 		embed := discordgo.MessageEmbed{
 			Title: "About",
@@ -81,11 +77,6 @@ var About = Command{
 				&discordgo.MessageEmbedField{
 					Name:   "Uptime",
 					Value:  fmt.Sprintf("Uptime: %v", timespan.String()),
-					Inline: true,
-				},
-				&discordgo.MessageEmbedField{
-					Name:   "Memory usage",
-					Value:  fmt.Sprintf("(%vmb/%vmb)", m.TotalAlloc/1024/1024, m.Sys/1024/1024),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{

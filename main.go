@@ -83,5 +83,6 @@ func addHandlers(s *discordgo.Session) {
 	go s.AddHandler(events.MemberJoinedHandler)
 	go s.AddHandler(events.MessageUpdateHandler)
 	go s.AddHandler(events.ReadyHandler)
+	go s.AddHandler(events.DisconnectHandler)
 	go s.AddHandler(commands.MessageCreateHandler)
 }

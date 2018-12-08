@@ -16,17 +16,9 @@ var SetUserRole = Command{
 	RequiredPerms: discordgo.PermissionManageRoles,
 	Execute: func(args []string, ctx *service.Context) {
 
+		var err error
+
 		if len(args) < 3 {
-			return
-		}
-
-		perms, err := ctx.Session.State.UserChannelPermissions(ctx.Message.Author.ID, ctx.Channel.ID)
-		if err != nil {
-			return
-		}
-
-		if perms&discordgo.PermissionManageRoles == 0 {
-			ctx.SendEmbed(&discordgo.MessageEmbed{Color: dColorRed, Description: "You do not have the required permissions."})
 			return
 		}
 

@@ -1,9 +1,12 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"meido-test/service"
+	"os"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -25,8 +28,17 @@ var CoolNameBro = Command{
 
 		memberList := []string{}
 
+		f, err := os.Open("./stuff/ranges.json")
+		if err != nil {
+			return
+		}
+		defer f.Close()
+		ich := charRanges{}
+
+		json.NewDecoder(f).Decode(&ich)
+
 		for _, val := range ctx.Guild.Members {
-			if badName(val) {
+			if badName(val, &ich) {
 				memberList = append(memberList, val.User.ID)
 			}
 		}
@@ -53,9 +65,32 @@ var CoolNameBro = Command{
 	},
 }
 
-func badName(u *discordgo.Member) bool {
+func badName(u *discordgo.Member, ich *charRanges) bool {
+	isIllegal := false
+
 	if u.Nick != "" {
-		return u.Nick[0] < 48
+		r, _ := utf8.DecodeRuneInString(u.Nick)
+		for _, rng := range ich.Ranges {
+			isIllegal = rng.Start <= int(r) && int(r) <= rng.Stop
+			if isIllegal {
+				break
+			}
+		}
+	} else {
+		r, _ := utf8.DecodeRuneInString(u.User.Username)
+		for _, rng := range ich.Ranges {
+			isIllegal = rng.Start <= int(r) && int(r) <= rng.Stop
+			if isIllegal {
+				break
+			}
+		}
 	}
-	return u.User.Username[0] < 48
+	return isIllegal
+}
+
+type charRanges struct {
+	Ranges []struct {
+		Start int `json:"start"`
+		Stop  int `json:"stop"`
+	} `json:"ranges"`
 }

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"meido-test/service"
 	"time"
 
@@ -23,8 +24,9 @@ var Ping = Command{
 
 		receiveTime := time.Now()
 
+		botDelay := receiveTime.Sub(ctx.StartTime)
 		delay := receiveTime.Sub(sendTime)
 
-		ctx.Session.ChannelMessageEdit(ctx.Message.ChannelID, msg.ID, "Pong - "+delay.String())
+		ctx.Session.ChannelMessageEdit(ctx.Message.ChannelID, msg.ID, fmt.Sprintf("Pong!\nDiscord delay: %v\nBot delay: %v", delay.String(), botDelay.String()))
 	},
 }

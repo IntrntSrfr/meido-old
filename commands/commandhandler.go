@@ -74,7 +74,7 @@ var verificationMap = map[int]string{
 
 var (
 	client        *discordgo.Session
-	startTime     = time.Now()
+	botStartTime  = time.Now()
 	comms         = Commandmap{}
 	db            *sql.DB
 	dmLogChannels []string
@@ -142,13 +142,19 @@ func (cmap *Commandmap) RegisterCommand(cmd Command) {
 	(*cmap)[cmd.Name] = cmd
 }
 
+//var id = 0
+
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Author.Bot {
 		return
 	}
 
-	context := service.NewContext(s, m.Message)
+	startTime := time.Now()
+
+	context := service.NewContext(s, m.Message, startTime)
+
+	//fmt.Println(fmt.Sprintf("[%v] - context in %v", id, time.Now().Sub(startTime)))
 
 	ch, err := s.Channel(m.ChannelID)
 	if err != nil {
@@ -240,8 +246,10 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if isIllegal {
 		return
 	}
+	//fmt.Println(fmt.Sprintf("[%v] - filter in %v", id, time.Now().Sub(startTime)))
 
 	doXp(&context)
+	//fmt.Println(fmt.Sprintf("[%v] - xp in %v", id, time.Now().Sub(startTime)))
 
 	triggerCommand := ""
 	for _, val := range comms {
@@ -251,6 +259,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}
 	}
+	//fmt.Println(fmt.Sprintf("[%v] - checked command in %v", id, time.Now().Sub(startTime)))
 
 	if triggerCommand != "" {
 
@@ -285,11 +294,13 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 
-			cmd.Execute(args, &context)
+			go cmd.Execute(args, &context)
+			//fmt.Println(fmt.Sprintf("[%v] - executed command in %v\n", id, time.Now().Sub(startTime)))
 			db.Exec("INSERT INTO commandlog(command, args, userid, guildid, channelid, messageid, tstamp) VALUES($1, $2, $3, $4, $5, $6, $7)", cmd.Name, strings.Join(args, " "), m.Author.ID, g.ID, ch.ID, m.ID, time.Now())
 			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
 		}
 	}
+	//id++
 }
 
 func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate) bool {

@@ -63,15 +63,6 @@ func GuildAvailableHandler(s *discordgo.Session, g *discordgo.GuildCreate) {
 
 	totalUsers += g.MemberCount
 
-	data := discordgo.UpdateStatusData{
-		Game: &discordgo.Game{
-			Type: discordgo.GameTypeWatching,
-			Name: fmt.Sprintf("over all %v of you", totalUsers),
-		},
-	}
-
-	s.UpdateStatusComplex(data)
-
 	dbg := models.DiscordGuild{}
 
 	row := db.QueryRow("SELECT guildid FROM discordguilds WHERE guildid = $1;", g.ID)
