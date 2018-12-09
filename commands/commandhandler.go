@@ -297,7 +297,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			go cmd.Execute(args, &context)
 			//fmt.Println(fmt.Sprintf("[%v] - executed command in %v\n", id, time.Now().Sub(startTime)))
 			db.Exec("INSERT INTO commandlog(command, args, userid, guildid, channelid, messageid, tstamp) VALUES($1, $2, $3, $4, $5, $6, $7)", cmd.Name, strings.Join(args, " "), m.Author.ID, g.ID, ch.ID, m.ID, time.Now())
-			fmt.Println(fmt.Sprintf("Command executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]\n", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
+			fmt.Println(fmt.Sprintf("\nCommand executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
 		}
 	}
 	//id++

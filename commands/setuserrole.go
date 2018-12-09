@@ -62,14 +62,31 @@ var SetUserRole = Command{
 			return
 		}
 
-		var lastinsertid int
-		err = db.QueryRow("INSERT INTO userroles(guildid, userid, roleid) VALUES($1, $2, $3) returning uid", g.ID, targetUser.ID, selectedRole.ID).Scan(&lastinsertid)
+		row := db.QueryRow("SELECT COUNT(*) FROM userroles WHERE guildid=$1 AND userid=$2 AND roleid=$3;", g.ID, targetUser.ID, selectedRole.ID)
+		userrolecount := 0
+		err = row.Scan(&userrolecount)
 		if err != nil {
-			ctx.Send(err.Error())
+			ctx.Send("error occured", err)
 			return
 		}
 
-		ctx.Send(fmt.Sprintf("Bound role **%v** to user **%v#%v**", selectedRole.Name, targetUser.Username, targetUser.Discriminator))
+		if userrolecount <= 0 {
+			_, err = db.Exec("INSERT INTO userroles(guildid, userid, roleid) VALUES($1, $2, $3);", g.ID, targetUser.ID, selectedRole.ID)
+			if err != nil {
+				ctx.Send(err.Error())
+				return
+			}
+
+			ctx.Send(fmt.Sprintf("Bound role **%v** to user **%v#%v**", selectedRole.Name, targetUser.Username, targetUser.Discriminator))
+		} else {
+			_, err = db.Exec("DELETE FROM userroles WHERE guildid=$1 AND userid=$2 AND roleid=$3;", g.ID, targetUser.ID, selectedRole.ID)
+			if err != nil {
+				ctx.Send(err.Error())
+				return
+			}
+
+			ctx.Send(fmt.Sprintf("Unbound role **%v** from user **%v#%v**", selectedRole.Name, targetUser.Username, targetUser.Discriminator))
+		}
 
 	},
 }
