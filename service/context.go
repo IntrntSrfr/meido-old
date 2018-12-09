@@ -26,9 +26,13 @@ func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) Context
 		ch = nil
 	}
 
-	g, err := s.Guild(ch.GuildID)
-	if err != nil {
-		g = nil
+	g := &discordgo.Guild{}
+
+	if ch.Type == discordgo.ChannelTypeGuildText {
+		g, err = s.Guild(ch.GuildID)
+		if err != nil {
+			g = nil
+		}
 	}
 
 	u, err := s.User(m.Author.ID)
