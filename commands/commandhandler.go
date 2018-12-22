@@ -156,24 +156,21 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	//fmt.Println(fmt.Sprintf("[%v] - context in %v", id, time.Now().Sub(startTime)))
 
-	ch, err := s.Channel(m.ChannelID)
+	ch, err := s.State.Channel(m.ChannelID)
 	if err != nil {
 		return
 	}
 
 	if ch.Type == discordgo.ChannelTypeDM {
 		if strings.ToLower(m.Content) == "enroll me" {
-			cfc, err := s.Guild("320896491596283906")
+			cfc, err := s.State.Guild("320896491596283906")
 			if err != nil {
 				return
 			}
 
 			var enrolledRole *discordgo.Role
 
-			groles, err := s.GuildRoles(cfc.ID)
-			if err != nil {
-				return
-			}
+			groles := cfc.Roles
 
 			for i := range groles {
 				role := groles[i]

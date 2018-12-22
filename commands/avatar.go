@@ -46,7 +46,7 @@ var Avatar = Command{
 			})
 		} else {
 			ctx.SendEmbed(&discordgo.MessageEmbed{
-				Color: UserColor(ctx.Guild, targetUser.ID),
+				Color: ctx.Session.State.UserColor(targetUser.ID, ctx.Channel.ID),
 				Title: targetUser.String(),
 				Image: &discordgo.MessageEmbedImage{URL: targetUser.AvatarURL("1024")},
 			})

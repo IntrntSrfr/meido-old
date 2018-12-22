@@ -21,7 +21,7 @@ type Context struct {
 var ctx = Context{}
 
 func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) Context {
-	ch, err := s.Channel(m.ChannelID)
+	ch, err := s.State.Channel(m.ChannelID)
 	if err != nil {
 		ch = nil
 	}
@@ -29,21 +29,21 @@ func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) Context
 	g := &discordgo.Guild{}
 
 	if ch.Type == discordgo.ChannelTypeGuildText {
-		g, err = s.Guild(ch.GuildID)
+		g, err = s.State.Guild(ch.GuildID)
 		if err != nil {
 			g = nil
 		}
 	}
-
-	u, err := s.User(m.Author.ID)
-	if err != nil {
-		u = nil
-	}
+	/*
+		u, err := s.User(m.Author.ID)
+		if err != nil {
+			u = nil
+		} */
 
 	return Context{
 		Session:   s,
 		Message:   m,
-		User:      u,
+		User:      m.Author,
 		Channel:   ch,
 		Guild:     g,
 		StartTime: t,

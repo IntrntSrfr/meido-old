@@ -19,7 +19,7 @@ func MessageUpdateHandler(s *discordgo.Session, m *discordgo.MessageUpdate) {
 		return
 	}
 
-	ch, err := s.Channel(m.ChannelID)
+	ch, err := s.State.Channel(m.ChannelID)
 	if err != nil {
 		return
 	}
@@ -28,7 +28,7 @@ func MessageUpdateHandler(s *discordgo.Session, m *discordgo.MessageUpdate) {
 		return
 	}
 
-	g, err := s.Guild(m.GuildID)
+	g, err := s.State.Guild(m.GuildID)
 	if err != nil {
 		return
 	}

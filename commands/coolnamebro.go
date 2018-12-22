@@ -42,7 +42,7 @@ var CoolNameBro = Command{
 				memberList = append(memberList, val.User.ID)
 			}
 		}
-
+		
 		if len(memberList) < 1 {
 			ctx.Send("There is no one rename.")
 			return
