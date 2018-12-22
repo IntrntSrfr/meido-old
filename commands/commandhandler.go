@@ -615,7 +615,7 @@ func SetupProfile(target *discordgo.User, ctx *service.Context, rep int) {
 
 func HighestRole(g *discordgo.Guild, userID string) int {
 
-	user, err := client.GuildMember(g.ID, userID)
+	user, err := client.State.Member(g.ID, userID)
 	if err != nil {
 		return -1
 	}
@@ -641,7 +641,7 @@ func HighestRole(g *discordgo.Guild, userID string) int {
 
 func UserColor(g *discordgo.Guild, userID string) int {
 
-	member, err := client.GuildMember(g.ID, userID)
+	member, err := client.State.Member(g.ID, userID)
 	if err != nil {
 		return 0
 	}
