@@ -51,7 +51,7 @@ func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) Context
 }
 
 func (c *Context) Send(a ...interface{}) (*discordgo.Message, error) {
-	return c.Session.ChannelMessageSend(c.Message.ChannelID, fmt.Sprintf("%v", a...))
+	return c.Session.ChannelMessageSend(c.Message.ChannelID, fmt.Sprint(a...))
 }
 
 func (c *Context) SendEmbed(embed *discordgo.MessageEmbed) (*discordgo.Message, error) {

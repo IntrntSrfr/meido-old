@@ -28,10 +28,11 @@ var Kick = Command{
 		if len(ctx.Message.Mentions) >= 1 {
 			targetUser = ctx.Message.Mentions[0]
 		} else {
-			targetUser, err = ctx.Session.User(args[1])
+			mem, err := ctx.Session.State.Member(ctx.Guild.ID, args[1])
 			if err != nil {
 				return
 			}
+			targetUser = mem.User
 		}
 
 		if targetUser.ID == ctx.Message.Author.ID {

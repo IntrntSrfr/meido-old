@@ -44,7 +44,7 @@ var Ban = Command{
 		} else {
 			targetUser, err = ctx.Session.User(args[1])
 			if err != nil {
-				ctx.Send("error occured: %v", err)
+				ctx.Send("error occured:", err)
 				return
 			}
 		}

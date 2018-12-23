@@ -183,15 +183,17 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 
-			for i := range cfc.Members {
-				member := cfc.Members[i]
+			mem, err := s.State.Member(cfc.ID, m.Author.ID)
+			if err != nil {
+				return
+			}
 
-				if member.User.ID == m.Author.ID {
-					err := s.GuildMemberRoleAdd(cfc.ID, m.Author.ID, enrolledRole.ID)
-					if err != nil {
-						return
-					}
+			if mem.User.ID == m.Author.ID {
+				err := s.GuildMemberRoleAdd(cfc.ID, m.Author.ID, enrolledRole.ID)
+				if err != nil {
+					return
 				}
+				s.ChannelMessageSend(m.ChannelID, "You're now enrolled, congratulations for passing the IQ test.")
 			}
 		} else {
 			dmembed := discordgo.MessageEmbed{
@@ -263,9 +265,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if cmd, ok := comms[triggerCommand]; ok {
 
 			isOwner := false
-			/*
-				if cmd.RequiresOwner == true {
-				} */
+
 			for _, val := range ownerIds {
 				if m.Author.ID == val {
 					isOwner = true
@@ -278,9 +278,9 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				}
 			}
 			/*
-				if !isOwner {
-				} */
-
+				if !cmd.RequiresOwner {
+				}
+			*/
 			if perms&cmd.RequiredPerms == 0 && perms&discordgo.PermissionAdministrator == 0 {
 				//fmt.Println(perms, cmd.RequiredPerms, permMap[cmd.RequiredPerms], perms&cmd.RequiredPerms)
 				return
