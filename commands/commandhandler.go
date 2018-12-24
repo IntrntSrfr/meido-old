@@ -124,6 +124,7 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 	comms.RegisterCommand(Test)
 	comms.RegisterCommand(Dm)
 	comms.RegisterCommand(Msg)
+	comms.RegisterCommand(Warn)
 
 	client = s
 	db = DB
@@ -328,7 +329,7 @@ func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate)
 				continue
 			}
 
-			if strings.Contains(msg.Content, filter.Filter) {
+			if strings.Contains(strings.ToLower(msg.Content), strings.ToLower(filter.Filter)) {
 				trigger = filter.Filter
 				isIllegal = true
 				break

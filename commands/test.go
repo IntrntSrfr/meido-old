@@ -32,6 +32,11 @@ var Dm = Command{
 	RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
 
+		if len(args) < 3 {
+			ctx.Send("no")
+			return
+		}
+
 		userch, err := ctx.Session.UserChannelCreate(args[1])
 
 		if err != nil {
@@ -44,7 +49,6 @@ var Dm = Command{
 
 		ctx.Session.ChannelMessageSend(userch.ID, strings.Join(args[2:], " "))
 		ctx.Send(fmt.Sprintf("Message sent to %v", userch.Recipients[0]))
-
 	},
 }
 
@@ -56,6 +60,11 @@ var Msg = Command{
 	RequiredPerms: discordgo.PermissionSendMessages,
 	RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
+
+		if len(args) < 3 {
+			ctx.Send("no")
+			return
+		}
 
 		var ch string
 
