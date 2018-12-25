@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"meido-test/service"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/ninedraft/simplepaste"
 )
 
 var WithNick = Command{
@@ -14,12 +16,12 @@ var WithNick = Command{
 	Triggers:      []string{"m?withnick"},
 	Usage:         "m?withnick meido",
 	RequiredPerms: discordgo.PermissionSendMessages,
+	RequiresOwner:true,
 	Execute: func(args []string, ctx *service.Context) {
 
 		var (
-			newName       string
-			matchingUsers int
-			userList      []*discordgo.User
+			newName    string
+			memberList []*discordgo.Member
 		)
 
 		if len(args) <= 1 {
@@ -28,31 +30,38 @@ var WithNick = Command{
 
 		newName = strings.Join(args[1:], " ")
 
-		for i := 0; i < len(ctx.Guild.Members); i++ {
-			member := ctx.Guild.Members[i]
-
-			if strings.ToLower(member.Nick) == strings.ToLower(newName) {
-				userList = append(userList, member.User)
-				matchingUsers++
-			} else if strings.ToLower(member.User.Username) == strings.ToLower(newName) {
-				userList = append(userList, member.User)
-				matchingUsers++
+		for _, mem := range ctx.Guild.Members {
+			if strings.ToLower(mem.Nick) == strings.ToLower(newName) {
+				memberList = append(memberList, mem)
+			} else if strings.ToLower(mem.User.Username) == strings.ToLower(newName) {
+				memberList = append(memberList, mem)
 			}
 		}
 
-		if matchingUsers < 1 {
+		if len(memberList) < 1 {
 			ctx.Send("No users with that name")
 			return
 		}
 
-		userBoard := "```\n"
-
-		for i := 0; i < len(userList); i++ {
-			u := userList[i]
-			userBoard += fmt.Sprintf("%v\n", u.String())
+		board := fmt.Sprintf("Total users with name %v: %v\n", newName, len(memberList))
+		if len(memberList) > 20 && len(memberList) < 5000 {
+			text := ""
+			for _, mem := range memberList {
+				text += fmt.Sprintf("%v\t%v\n", mem.User.String(), mem.User.ID)
+			}
+			paste := simplepaste.NewPaste(fmt.Sprintf("Users with name %v: %v", newName, time.Now().Format(time.RFC1123)), text)
+			res, err := pbAPI.SendPaste(paste)
+			if err != nil {
+				board += "Error getting list."
+			}
+			board += res
+		} else {
+			board += "```\n"
+			for _, mem := range memberList {
+				board += fmt.Sprintf("%v\t(%v)\n", mem.User.String(), mem.User.ID)
+			}
+			board += "```"
 		}
-		userBoard += "```"
-
-		ctx.Send(fmt.Sprintf("Total users with name %v: %v\nPreview:\n%v", newName, matchingUsers, userBoard))
+		ctx.Send(board)
 	},
 }

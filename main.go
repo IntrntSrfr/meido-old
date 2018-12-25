@@ -11,12 +11,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ninedraft/simplepaste"
+
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/lib/pq"
 )
 
 type Config struct {
 	Token            string   `json:"Token"`
+	PBToken          string   `json:"PBToken"`
 	ConnectionString string   `json:"Connectionstring"`
 	DmLogChannels    []string `json:"DmLogChannels"`
 	OwnerIds         []string `json:"OwnerIds"`
@@ -58,7 +61,9 @@ func (b *Bot) Run() {
 
 	defer db.Close()
 
-	commands.Initialize(client, &config.OwnerIds, &config.DmLogChannels, db)
+	pbAPI := simplepaste.NewAPI(config.PBToken)
+
+	commands.Initialize(client, &config.OwnerIds, &config.DmLogChannels, db, pbAPI)
 	events.Initialize(db)
 
 	addHandlers(client)

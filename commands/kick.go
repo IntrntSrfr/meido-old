@@ -23,7 +23,10 @@ var Kick = Command{
 		var targetUser *discordgo.User
 		var err error
 
-		reason := strings.Join(args[2:], " ")
+		reason := ""
+		if len(args) > 2 {
+			reason = strings.Join(args[2:], " ")
+		}
 
 		if len(ctx.Message.Mentions) >= 1 {
 			targetUser = ctx.Message.Mentions[0]
@@ -71,7 +74,6 @@ var Kick = Command{
 					ctx.Session.ChannelMessageSend(userchannel.ID, fmt.Sprintf("You have been kicked from %v for the following reason: %v", ctx.Guild.Name, reason))
 				}
 			}
-
 		}
 		err = ctx.Session.GuildMemberDeleteWithReason(ctx.Guild.ID, targetUser.ID, fmt.Sprintf("%v#%v - %v", ctx.Message.Author.Username, ctx.Message.Author.Discriminator, reason))
 		if err != nil {

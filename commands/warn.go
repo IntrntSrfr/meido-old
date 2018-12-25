@@ -13,10 +13,9 @@ import (
 var Warn = Command{
 	Name:          "warn",
 	Description:   "Warns a user, adding a strike. Does not work if strike system is disabled.",
-	Triggers:      []string{"m?warn"},
-	Usage:         "m?warn 163454407999094786\nm?warn @internet surfer#0001",
+	Triggers:      []string{"m?warn", ".warn"},
+	Usage:         "m?warn 163454407999094786\n.warn @internet surfer#0001",
 	RequiredPerms: discordgo.PermissionBanMembers,
-	RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
 
 		row := db.QueryRow("SELECT usestrikes, maxstrikes FROM discordguilds WHERE guildid = $1;", ctx.Guild.ID)

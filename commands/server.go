@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"meido-test/service"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -46,6 +47,16 @@ var Server = Command{
 			},
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
+					Name:   "Owner",
+					Value:  fmt.Sprintf("%v\n(%v)", owner.Mention(), ctx.Guild.OwnerID),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Created",
+					Value:  fmt.Sprintf("%v", t.Format(time.RFC1123)),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
 					Name:   "Members",
 					Value:  fmt.Sprintf("%v", ctx.Guild.MemberCount),
 					Inline: true,
@@ -58,16 +69,6 @@ var Server = Command{
 				&discordgo.MessageEmbedField{
 					Name:   "Roles",
 					Value:  fmt.Sprintf("%v roles", len(ctx.Guild.Roles)),
-					Inline: true,
-				},
-				&discordgo.MessageEmbedField{
-					Name:   "Owner",
-					Value:  fmt.Sprintf("%v\n(%v)", owner.Mention(), ctx.Guild.OwnerID),
-					Inline: true,
-				},
-				&discordgo.MessageEmbedField{
-					Name:   "Created",
-					Value:  fmt.Sprintf("%v", t.Format("15-04-2021 18:00pm")),
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{

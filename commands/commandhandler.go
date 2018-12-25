@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ninedraft/simplepaste"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -79,9 +81,10 @@ var (
 	db            *sql.DB
 	dmLogChannels []string
 	ownerIds      []string
+	pbAPI         *simplepaste.API
 )
 
-func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB) {
+func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB, pbapi *simplepaste.API) {
 
 	comms.RegisterCommand(FilterWord)
 	comms.RegisterCommand(FilterWordList)
@@ -130,6 +133,7 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 	db = DB
 	dmLogChannels = *DmLogChannels
 	ownerIds = *OwnerIds
+	pbAPI = pbapi
 }
 
 func GetCommandMap() Commandmap {

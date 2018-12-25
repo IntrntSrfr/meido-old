@@ -24,7 +24,6 @@ var Profile = Command{
 		var err error
 
 		if len(args) > 1 {
-
 			if len(ctx.Message.Mentions) >= 1 {
 				targetUser = ctx.Message.Mentions[0]
 			} else {
