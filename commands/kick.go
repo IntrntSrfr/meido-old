@@ -37,6 +37,11 @@ var Kick = Command{
 				return
 			}
 		}
+		
+		if targetUser.ID == ctx.Session.State.User.ID{
+			ctx.Send("no")
+			return
+		}
 
 		_, err = ctx.Session.State.Member(ctx.Guild.ID, args[1])
 		if err != nil {

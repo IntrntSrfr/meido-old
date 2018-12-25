@@ -49,6 +49,11 @@ var Ban = Command{
 			}
 		}
 
+		if targetUser.ID == ctx.Session.State.User.ID {
+			ctx.Send("no")
+			return
+		}
+
 		if targetUser.ID == ctx.Message.Author.ID {
 			ctx.Send("no")
 			return
