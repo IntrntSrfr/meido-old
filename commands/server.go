@@ -28,15 +28,15 @@ var Server = Command{
 			}
 		}
 
-		owner, err := ctx.Session.User(ctx.Guild.OwnerID)
+		owner, err := ctx.Session.State.Member(ctx.Guild.ID, ctx.Guild.OwnerID)
 		if err != nil {
-			ctx.Send("error occured")
+			ctx.Send("error occured ", err)
 			return
 		}
 
 		t, err := ctx.Guild.JoinedAt.Parse()
 		if err != nil {
-			ctx.Send("error occured")
+			ctx.Send("error occured ", err)
 			return
 		}
 
