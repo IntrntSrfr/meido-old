@@ -251,7 +251,7 @@ var Repleaderboard = Command{
 
 		leaderboard += "\n"
 
-		row := db.QueryRow("SELECT userid, reputation FROM discordusers WHERE userid=$1;", ctx.User.ID)
+		row := db.QueryRow("SELECT reputation FROM discordusers WHERE userid=$1;", ctx.User.ID)
 
 		dbu := models.DiscordUser{}
 		err = row.Scan(
