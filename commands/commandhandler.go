@@ -484,7 +484,7 @@ func doXp(ctx *service.Context) {
 		xpTime = dbu.Nextxpgaintime
 	}
 
-	diff := xpTime.Sub(currentTime.Add(time.Hour * 1))
+	diff := xpTime.Sub(currentTime)
 
 	if diff <= 0 {
 		//igu := models.Xpignoreduser{}

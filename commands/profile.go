@@ -139,7 +139,7 @@ var Rep = Command{
 			return
 		}
 
-		diff := dbu.Cangivereptime.Sub(currentTime.Add(time.Hour * time.Duration(2)))
+		diff := dbu.Cangivereptime.Sub(currentTime)
 
 		if len(args) < 2 {
 			if diff > 0 {
@@ -207,13 +207,13 @@ var Rep = Command{
 
 var Repleaderboard = Command{
 	Name:          "repleaderboard",
-	Description:   "Gives a user a reputation point or checks whether you can give it or not.",
+	Description:   "Checks the reputation leaderboard.",
 	Triggers:      []string{"m?rplb"},
 	Usage:         "m?rplb",
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
-		rows, err := db.Query("SELECT * FROM discordusers WHERE reputation > 0 ORDER BY reputation DESC LIMIT 10 ")
+		rows, err := db.Query("SELECT userid, reputation FROM discordusers WHERE reputation > 0 ORDER BY reputation DESC LIMIT 10;")
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -231,24 +231,39 @@ var Repleaderboard = Command{
 			dbu := models.DiscordUser{}
 
 			err = rows.Scan(
-				&dbu.Uid,
 				&dbu.Userid,
-				&dbu.Username,
-				&dbu.Discriminator,
-				&dbu.Xp,
-				&dbu.Nextxpgaintime,
-				&dbu.Xpexcluded,
 				&dbu.Reputation,
-				&dbu.Cangivereptime)
+			)
 
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
 
-			leaderboard += fmt.Sprintf("#%v - %v#%v - %v reputation points\n", place, dbu.Username, dbu.Discriminator, dbu.Reputation)
+			u, err := ctx.Session.User(dbu.Userid)
+			if err != nil {
+				continue
+			}
+
+			leaderboard += fmt.Sprintf("#%v - %v#%v - %v reputation points\n", place, u.Username, u.Discriminator, dbu.Reputation)
 			place++
 		}
+
+		leaderboard += "\n"
+
+		row := db.QueryRow("SELECT userid, reputation FROM discordusers WHERE userid=$1;", ctx.User.ID)
+
+		dbu := models.DiscordUser{}
+		err = row.Scan(
+			&dbu.Reputation,
+		)
+		if err != nil {
+			ctx.Send("Error getting leaderboard.")
+			return
+		}
+
+		leaderboard += fmt.Sprintf("Your stats\nReputation: %v\n", dbu.Reputation)
+
 		leaderboard += "```"
 
 		ctx.Send(leaderboard)
@@ -291,12 +306,12 @@ var XpLeaderboard = Command{
 				return
 			}
 
-			user, err := ctx.Session.User(dbxp.Userid)
+			mem, err := ctx.Session.State.Member(ctx.Guild.ID, dbxp.Userid)
 			if err != nil {
-				return
+				leaderboard += fmt.Sprintf("#%v - User not here (%v) - %vxp\n", place, dbxp.Userid, dbxp.Xp)
+			} else {
+				leaderboard += fmt.Sprintf("#%v - %v#%v - %vxp\n", place, mem.User.Username, mem.User.Discriminator, dbxp.Xp)
 			}
-
-			leaderboard += fmt.Sprintf("#%v - %v#%v - %vxp\n", place, user.Username, user.Discriminator, dbxp.Xp)
 			place++
 		}
 		leaderboard += "```"
@@ -377,7 +392,7 @@ var XpIgnoreChannel = Command{
 			} else {
 				ch = args[1]
 			}
-			channel, err = ctx.Session.Channel(ch)
+			channel, err = ctx.Session.State.Channel(ch)
 			if err != nil {
 				ctx.Send("Invalid channel.")
 				return
