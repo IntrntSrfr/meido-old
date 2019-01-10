@@ -30,7 +30,7 @@ var MyRole = Command{
 
 				u := ctx.Message.Author
 
-				g, err := ctx.Session.Guild(ctx.Guild.ID)
+				g, err := ctx.Session.State.Guild(ctx.Guild.ID)
 				if err != nil {
 					ctx.Send(err.Error())
 					return
@@ -97,7 +97,7 @@ var MyRole = Command{
 
 				u := ctx.Message.Author
 
-				g, err := ctx.Session.Guild(ctx.Guild.ID)
+				g, err := ctx.Session.State.Guild(ctx.Guild.ID)
 				if err != nil {
 					ctx.Send(err.Error())
 					return
@@ -144,14 +144,18 @@ var MyRole = Command{
 				ctx.SendEmbed(&embed)
 			}
 		}
-		var targetUser *discordgo.User
+		var targetUser *discordgo.Member
 
 		if len(args) > 1 {
 
 			if len(ctx.Message.Mentions) >= 1 {
-				targetUser = ctx.Message.Mentions[0]
+				targetUser, err = ctx.Session.State.Member(ctx.Guild.ID, ctx.Message.Mentions[0].ID)
+				if err != nil {
+					//s.ChannelMessageSend(ch.ID, err.Error())
+					return
+				}
 			} else {
-				targetUser, err = ctx.Session.User(args[1])
+				targetUser, err = ctx.Session.State.Member(ctx.Guild.ID, args[1])
 				if err != nil {
 					//s.ChannelMessageSend(ch.ID, err.Error())
 					return
@@ -160,23 +164,23 @@ var MyRole = Command{
 		}
 
 		if targetUser == nil {
-			targetUser = ctx.Message.Author
+			targetUser.User = ctx.Message.Author
 		}
 
-		if targetUser.Bot {
+		if targetUser.User.Bot {
 			ctx.Send("Bots dont get to join the fun")
 			return
 		}
 
 		u := targetUser
 
-		g, err := ctx.Session.Guild(ctx.Guild.ID)
+		g, err := ctx.Session.State.Guild(ctx.Guild.ID)
 		if err != nil {
 			ctx.Send(err.Error())
 			return
 		}
 
-		row := db.QueryRow("SELECT * FROM userroles WHERE guildid=$1 AND userid=$2", g.ID, u.ID)
+		row := db.QueryRow("SELECT * FROM userroles WHERE guildid=$1 AND userid=$2", g.ID, u.User.ID)
 
 		ur := models.Userrole{}
 
@@ -203,7 +207,7 @@ var MyRole = Command{
 
 		embed := discordgo.MessageEmbed{
 			Color: int(customRole.Color),
-			Title: fmt.Sprintf("Custom role for %v", u.String()),
+			Title: fmt.Sprintf("Custom role for %v", u.User.String()),
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name:   "Name",

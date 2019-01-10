@@ -75,7 +75,7 @@ var Msg = Command{
 			ch = args[1]
 		}
 
-		chn, err := ctx.Session.Channel(ch)
+		chn, err := ctx.Session.State.Channel(ch)
 		if err != nil {
 			return
 		}

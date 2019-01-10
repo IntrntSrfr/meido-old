@@ -11,7 +11,7 @@ var Lockdown = Command{
 	Description:   "Locks down the current channel, denying the everyonerole send message perms.",
 	Triggers:      []string{"m?lockdown"},
 	Usage:         "m?lockdown",
-	RequiredPerms: discordgo.PermissionManageChannels,
+	RequiredPerms: discordgo.PermissionManageRoles,
 	Execute: func(args []string, ctx *service.Context) {
 		var erole *discordgo.Role
 

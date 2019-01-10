@@ -22,24 +22,27 @@ var SetUserRole = Command{
 			return
 		}
 
-		var targetUser *discordgo.User
+		var targetUser *discordgo.Member
 
 		if len(ctx.Message.Mentions) >= 1 {
-			targetUser = ctx.Message.Mentions[0]
-		} else {
-			targetUser, err = ctx.Session.User(args[1])
+			targetUser, err = ctx.Session.State.Member(ctx.Guild.ID, ctx.Message.Mentions[0].ID)
 			if err != nil {
-				ctx.Send(err.Error())
+				//s.ChannelMessageSend(ch.ID, err.Error())
+				return
+			}
+		} else {
+			targetUser, err = ctx.Session.State.Member(ctx.Guild.ID, args[1])
+			if err != nil {
+				//s.ChannelMessageSend(ch.ID, err.Error())
 				return
 			}
 		}
-
-		if targetUser.Bot {
+		if targetUser.User.Bot {
 			ctx.Send("Bots dont get to join the fun")
 			return
 		}
 
-		g, err := ctx.Session.Guild(ctx.Guild.ID)
+		g, err := ctx.Session.State.Guild(ctx.Guild.ID)
 		if err != nil {
 			ctx.Send(err.Error())
 			return
@@ -62,7 +65,7 @@ var SetUserRole = Command{
 			return
 		}
 
-		row := db.QueryRow("SELECT COUNT(*) FROM userroles WHERE guildid=$1 AND userid=$2 AND roleid=$3;", g.ID, targetUser.ID, selectedRole.ID)
+		row := db.QueryRow("SELECT COUNT(*) FROM userroles WHERE guildid=$1 AND userid=$2 AND roleid=$3;", g.ID, targetUser.User.ID, selectedRole.ID)
 		userrolecount := 0
 		err = row.Scan(&userrolecount)
 		if err != nil {
@@ -71,22 +74,19 @@ var SetUserRole = Command{
 		}
 
 		if userrolecount <= 0 {
-			_, err = db.Exec("INSERT INTO userroles(guildid, userid, roleid) VALUES($1, $2, $3);", g.ID, targetUser.ID, selectedRole.ID)
+			_, err = db.Exec("INSERT INTO userroles(guildid, userid, roleid) VALUES($1, $2, $3);", g.ID, targetUser.User.ID, selectedRole.ID)
 			if err != nil {
 				ctx.Send(err.Error())
 				return
 			}
-
-			ctx.Send(fmt.Sprintf("Bound role **%v** to user **%v#%v**", selectedRole.Name, targetUser.Username, targetUser.Discriminator))
+			ctx.Send(fmt.Sprintf("Bound role **%v** to user **%v#%v**", selectedRole.Name, targetUser.User.Username, targetUser.User.Discriminator))
 		} else {
-			_, err = db.Exec("DELETE FROM userroles WHERE guildid=$1 AND userid=$2 AND roleid=$3;", g.ID, targetUser.ID, selectedRole.ID)
+			_, err = db.Exec("DELETE FROM userroles WHERE guildid=$1 AND userid=$2 AND roleid=$3;", g.ID, targetUser.User.ID, selectedRole.ID)
 			if err != nil {
 				ctx.Send(err.Error())
 				return
 			}
-
-			ctx.Send(fmt.Sprintf("Unbound role **%v** from user **%v#%v**", selectedRole.Name, targetUser.Username, targetUser.Discriminator))
+			ctx.Send(fmt.Sprintf("Unbound role **%v** from user **%v#%v**", selectedRole.Name, targetUser.User.Username, targetUser.User.Discriminator))
 		}
-
 	},
 }
