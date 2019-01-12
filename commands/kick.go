@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"meido-test/service"
+	"meido/service"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -20,7 +20,7 @@ var Kick = Command{
 			return
 		}
 
-		var targetUser *discordgo.User
+		var targetUser *discordgo.Member
 		var err error
 
 		reason := ""
@@ -29,33 +29,37 @@ var Kick = Command{
 		}
 
 		if len(ctx.Message.Mentions) >= 1 {
-			targetUser = ctx.Message.Mentions[0]
+			targetUser, err = ctx.Session.State.Member(ctx.Guild.ID, ctx.Message.Mentions[0].ID)
+			if err != nil {
+				ctx.Send("error occured:", err)
+				return
+			}
 		} else {
-			targetUser, err = ctx.Session.User(args[1])
+			targetUser, err = ctx.Session.State.Member(ctx.Guild.ID, args[1])
 			if err != nil {
 				ctx.Send("error occured:", err)
 				return
 			}
 		}
 
-		if targetUser.ID == ctx.Session.State.User.ID {
+		if targetUser.User.ID == ctx.Session.State.User.ID {
 			ctx.Send("no")
 			return
 		}
+		/*
+			_, err = ctx.Session.State.Member(ctx.Guild.ID, args[1])
+			if err != nil {
+				ctx.Send("didnt work: ", err.Error())
+				return
+			} */
 
-		_, err = ctx.Session.State.Member(ctx.Guild.ID, args[1])
-		if err != nil {
-			ctx.Send("didnt work: ", err.Error())
-			return
-		}
-
-		if targetUser.ID == ctx.Message.Author.ID {
+		if targetUser.User.ID == ctx.Message.Author.ID {
 			ctx.Send("no")
 			return
 		}
 
 		topUserrole := HighestRole(ctx.Guild, ctx.User.ID)
-		topTargetrole := HighestRole(ctx.Guild, targetUser.ID)
+		topTargetrole := HighestRole(ctx.Guild, targetUser.User.ID)
 
 		if topUserrole <= topTargetrole {
 			ctx.Send("no")
@@ -66,7 +70,7 @@ var Kick = Command{
 
 			okCh := true
 
-			userchannel, err := ctx.Session.UserChannelCreate(targetUser.ID)
+			userchannel, err := ctx.Session.UserChannelCreate(targetUser.User.ID)
 			if err != nil {
 				okCh = false
 			}
@@ -80,7 +84,7 @@ var Kick = Command{
 				}
 			}
 		}
-		err = ctx.Session.GuildMemberDeleteWithReason(ctx.Guild.ID, targetUser.ID, fmt.Sprintf("%v#%v - %v", ctx.Message.Author.Username, ctx.Message.Author.Discriminator, reason))
+		err = ctx.Session.GuildMemberDeleteWithReason(ctx.Guild.ID, targetUser.User.ID, fmt.Sprintf("%v#%v - %v", ctx.Message.Author.Username, ctx.Message.Author.Discriminator, reason))
 		if err != nil {
 			ctx.Send(err.Error())
 			return
@@ -96,7 +100,7 @@ var Kick = Command{
 				},
 				{
 					Name:   "ID",
-					Value:  fmt.Sprintf("%v", targetUser.ID),
+					Value:  fmt.Sprintf("%v", targetUser.User.ID),
 					Inline: true,
 				},
 			},

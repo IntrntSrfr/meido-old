@@ -1,28 +1,46 @@
 package commands
 
 import (
-	"meido-test/service"
+	"meido/service"
 	"os"
 	"path/filepath"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-var Umr = Command{
-	Name:          "UMR",
-	Description:   "UMR UMR UMR UMR UMR UMR UMR UMR UMR",
-	Triggers:      []string{"m?umr"},
-	Usage:         "m?umr",
+var Img = Command{
+	Name:          "img",
+	Description:   "easter eggs",
+	Triggers:      []string{"m?img"},
+	Usage:         "m?img umr",
 	RequiredPerms: discordgo.PermissionManageMessages,
 	Execute: func(args []string, ctx *service.Context) {
-		path, _ := filepath.Abs("../meido-test/stuff/umr.jpg")
-		file, err := os.Open(path)
-		if err != nil {
-			ctx.Send(err.Error())
-			return
-		}
-		defer file.Close()
+		if len(args) >= 2 {
+			var path string
+			switch args[1] {
+			case "umr":
+				path, _ = filepath.Abs("../meido/stuff/umr.jpg")
+				file, err := os.Open(path)
+				if err != nil {
+					ctx.Send(err.Error())
+					return
+				}
+				defer file.Close()
 
-		ctx.Session.ChannelFileSend(ctx.Channel.ID, "umr.jpg", file)
+				ctx.Session.ChannelFileSend(ctx.Channel.ID, "umr.jpg", file)
+			case "hamster":
+				path, _ = filepath.Abs("../meido/stuff/hamster.png")
+				file, err := os.Open(path)
+				if err != nil {
+					ctx.Send(err.Error())
+					return
+				}
+				defer file.Close()
+
+				ctx.Session.ChannelFileSend(ctx.Channel.ID, "hamster.png", file)
+			default:
+				return
+			}
+		}
 	},
 }

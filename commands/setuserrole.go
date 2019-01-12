@@ -2,7 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"meido-test/service"
+	"meido/models"
+	"meido/service"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -88,5 +89,48 @@ var SetUserRole = Command{
 			}
 			ctx.Send(fmt.Sprintf("Unbound role **%v** from user **%v#%v**", selectedRole.Name, targetUser.User.Username, targetUser.User.Discriminator))
 		}
+	},
+}
+
+var ListUserRoles = Command{
+	Name:          "listuserroles",
+	Description:   "Sets a users custom role. First provide the user, followed by the role.",
+	Triggers:      []string{"m?listuserroles"},
+	Usage:         "m?listuserroles",
+	RequiredPerms: discordgo.PermissionManageRoles,
+	Execute: func(args []string, ctx *service.Context) {
+		rows, err := db.Query("SELECT roleid, userid FROM userroles WHERE guildid=$1;", ctx.Guild.ID)
+		if err != nil {
+			return
+		}
+		text := fmt.Sprintf("Userroles in %v\n\n\n", ctx.Guild.Name)
+		for rows.Next() {
+			count := 0
+			dbur := models.Userrole{}
+			err := rows.Scan(&dbur.Roleid, &dbur.Userid)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			role, err := ctx.Session.State.Role(ctx.Guild.ID, dbur.Roleid)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			mem, err := ctx.Session.State.Member(ctx.Guild.ID, dbur.Userid)
+			if err != nil {
+				fmt.Println(err)
+				text += fmt.Sprintf("Role #%v: %v (%v) | Bound user: %v - User no longer in guild.", count, role.Name, role.ID, dbur.Userid)
+			} else {
+				text += fmt.Sprintf("Role #%v: %v (%v) | Bound user: %v (%v)", count, role.Name, role.ID, mem.User.String(), mem.User.ID)
+			}
+			count++
+		}
+		fmt.Println(text)
+		link, err := OWOApi.Upload(text)
+		if err != nil {
+			ctx.Send("Error getting user roles.")
+		}
+		ctx.Send(fmt.Sprintf("User roles in %v\n%v", ctx.Guild.Name, link))
 	},
 }

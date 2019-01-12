@@ -3,13 +3,14 @@ package events
 import (
 	"database/sql"
 	"fmt"
-	"meido-test/models"
+	"meido/models"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 func MemberJoinedHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+	totalUsers++
 	sqlstr := "INSERT INTO discordusers(userid, username, discriminator, xp, nextxpgaintime, xpexcluded, reputation, cangivereptime) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)"
 
 	stmt, err := db.Prepare(sqlstr)

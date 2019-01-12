@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"meido-test/service"
+	"meido/service"
 	"strconv"
 	"strings"
 
@@ -91,6 +91,10 @@ var Ban = Command{
 		if err != nil {
 			ctx.Send(err.Error())
 			return
+		}
+		_, err = db.Exec("DELETE FROM strikes WHERE userid = $1 AND guildid = $2;", targetUser.ID, ctx.Guild.ID)
+		if err != nil {
+			fmt.Println(err)
 		}
 
 		embed := &discordgo.MessageEmbed{

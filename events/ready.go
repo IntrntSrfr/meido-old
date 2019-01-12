@@ -14,17 +14,22 @@ var (
 
 func ReadyHandler(s *discordgo.Session, r *discordgo.Ready) {
 
+	oldTotalUsers := 0
 	timer := time.NewTicker(15 * time.Second)
 	go func() {
-		select {
-		case <-timer.C:
-			data := discordgo.UpdateStatusData{
-				Game: &discordgo.Game{
-					Type: discordgo.GameTypeWatching,
-					Name: fmt.Sprintf("over all %v of you", totalUsers),
-				},
+		for range timer.C {
+			if totalUsers != oldTotalUsers {
+
+				data := discordgo.UpdateStatusData{
+					Game: &discordgo.Game{
+						Type: discordgo.GameTypeWatching,
+						Name: fmt.Sprintf("over all %v of you", totalUsers),
+					},
+				}
+				s.UpdateStatusComplex(data)
+				//fmt.Println(fmt.Sprintf("Status update - [%v users]", totalUsers))
+				oldTotalUsers = totalUsers
 			}
-			s.UpdateStatusComplex(data)
 		}
 	}()
 

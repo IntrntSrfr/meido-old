@@ -74,16 +74,6 @@ CREATE TABLE IF NOT EXISTS discordguilds
 )
 WITH (OIDS=FALSE); 
 
-CREATE TABLE IF NOT EXISTS strikes
-(
-    uid serial NOT NULL,
-    guildid character varying(30) NOT NULL,
-    userid character varying(30) NOT NULL,
-    strikes int NOT NULL,
-    CONSTRAINT strike_pkey PRIMARY KEY (uid)
-)
-WITH (OIDS=FALSE); 
-
 CREATE TABLE IF NOT EXISTS filterignorechannels
 (
     uid serial NOT NULL,
@@ -102,3 +92,15 @@ CREATE TABLE IF NOT EXISTS userroles
     CONSTRAINT userrole_pkey PRIMARY KEY (uid)
 )
 WITH (OIDS=FALSE);
+
+CREATE TABLE IF NOT EXISTS strikes
+(
+    uid serial NOT NULL,
+    guildid character varying(30) NOT NULL,
+    userid character varying(30) NOT NULL,
+    reason character varying(250) NOT NULL,
+    executorid character varying(30) NOT NULL,
+    tstamp timestamp NOT NULL,
+    CONSTRAINT strike_pkey PRIMARY KEY (uid)
+)
+WITH (OIDS=FALSE); 

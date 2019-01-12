@@ -3,7 +3,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"meido-test/service"
+	"meido/service"
 	"os"
 	"strings"
 	"unicode/utf8"
@@ -42,7 +42,7 @@ var CoolNameBro = Command{
 				memberList = append(memberList, val.User.ID)
 			}
 		}
-		
+
 		if len(memberList) < 1 {
 			ctx.Send("There is no one rename.")
 			return

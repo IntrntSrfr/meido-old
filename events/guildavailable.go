@@ -3,7 +3,7 @@ package events
 import (
 	"database/sql"
 	"fmt"
-	"meido-test/models"
+	"meido/models"
 
 	"github.com/bwmarrin/discordgo"
 )

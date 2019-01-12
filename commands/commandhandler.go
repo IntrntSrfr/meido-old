@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"meido-test/models"
-	"meido-test/service"
+	"meido/models"
+	"meido/owo"
+	"meido/service"
+	"os"
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/ninedraft/simplepaste"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -81,23 +81,29 @@ var (
 	db            *sql.DB
 	dmLogChannels []string
 	ownerIds      []string
-	pbAPI         *simplepaste.API
+	OWOApi        *owo.Client
 )
 
-func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB, pbapi *simplepaste.API) {
+func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB, owo *owo.Client) {
 
 	comms.RegisterCommand(FilterWord)
 	comms.RegisterCommand(FilterWordList)
 	comms.RegisterCommand(FilterInfo)
 	comms.RegisterCommand(FilterIgnoreChannel)
 	comms.RegisterCommand(ClearFilter)
+
 	comms.RegisterCommand(UseStrikes)
 	comms.RegisterCommand(SetMaxStrikes)
 	comms.RegisterCommand(ClearStrikes)
+	comms.RegisterCommand(Warn)
+	comms.RegisterCommand(StrikeLog)
+	//comms.RegisterCommand(StrikeLogAll)
+	comms.RegisterCommand(RemoveStrike)
 
 	comms.RegisterCommand(Ban)
+	comms.RegisterCommand(Hackban)
 	comms.RegisterCommand(Unban)
-	comms.RegisterCommand(ClearAFK)
+	//comms.RegisterCommand(ClearAFK)
 	comms.RegisterCommand(CoolNameBro)
 	comms.RegisterCommand(Kick)
 	comms.RegisterCommand(Lockdown)
@@ -106,9 +112,8 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 
 	comms.RegisterCommand(About)
 	comms.RegisterCommand(Avatar)
-	comms.RegisterCommand(MyRole)
 	comms.RegisterCommand(Ping)
-	comms.RegisterCommand(Umr)
+	comms.RegisterCommand(Img)
 	comms.RegisterCommand(Help)
 	comms.RegisterCommand(Inrole)
 	comms.RegisterCommand(WithNick)
@@ -116,6 +121,9 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 	//comms.RegisterCommand(Role)
 	comms.RegisterCommand(Server)
 	//comms.RegisterCommand(User)
+	//comms.RegisterCommand(ListRoles)
+	comms.RegisterCommand(ListUserRoles)
+	comms.RegisterCommand(MyRole)
 
 	comms.RegisterCommand(Profile)
 	comms.RegisterCommand(Rep)
@@ -127,13 +135,15 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 	comms.RegisterCommand(Test)
 	comms.RegisterCommand(Dm)
 	comms.RegisterCommand(Msg)
-	comms.RegisterCommand(Warn)
+
+	comms.RegisterCommand(Invite)
+	comms.RegisterCommand(Feedback)
 
 	client = s
 	db = DB
 	dmLogChannels = *DmLogChannels
 	ownerIds = *OwnerIds
-	pbAPI = pbapi
+	OWOApi = owo
 }
 
 func GetCommandMap() Commandmap {
@@ -143,6 +153,10 @@ func GetCommandMap() Commandmap {
 }
 
 func (cmap *Commandmap) RegisterCommand(cmd Command) {
+	if cmd, ok := comms[cmd.Name]; ok {
+		fmt.Println("Conflicting Commands.", cmd, comms[cmd.Name])
+		os.Exit(0)
+	}
 
 	(*cmap)[cmd.Name] = cmd
 }
@@ -351,89 +365,37 @@ func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate)
 			}
 
 			if dbg.UseStrikes {
-				dbs := models.Strikes{}
 
-				row := db.QueryRow("SELECT * FROM strikes WHERE guildid = $1 AND userid = $2;", ctx.Guild.ID, ctx.User.ID)
-				err := row.Scan(&dbs.Uid, &dbs.Guildid, &dbs.Userid, &dbs.Strikes)
+				reason := fmt.Sprintf("Triggering filter: %v", trigger)
+
+				strikeCount := 0
+
+				row := db.QueryRow("SELECT COUNT(*) FROM strikes WHERE guildid = $1 AND userid = $2;", ctx.Guild.ID, ctx.User.ID)
+				err := row.Scan(&strikeCount)
 				if err != nil {
-					if err == sql.ErrNoRows {
-						if dbg.MaxStrikes < 2 {
-							ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
-							userch, _ := ctx.Session.UserChannelCreate(ctx.User.ID)
-							ctx.Session.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for triggering the filter.\n- %v", ctx.Guild.Name, trigger))
-							err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, ctx.User.ID, fmt.Sprintf("Triggering filter: %v", trigger), 0)
-							if err != nil {
-								ctx.Send(err.Error())
-								return true
-							}
+					return false
+				}
 
-							embed := &discordgo.MessageEmbed{
-								Title:       "User banned",
-								Description: "Filter triggered",
-								Fields: []*discordgo.MessageEmbedField{
-									{
-										Name:   "Username",
-										Value:  fmt.Sprintf("%v", ctx.User.Mention()),
-										Inline: true,
-									},
-									{
-										Name:   "ID",
-										Value:  fmt.Sprintf("%v", ctx.User.ID),
-										Inline: true,
-									},
-								},
-								Color: dColorRed,
-							}
+				if strikeCount+1 >= dbg.MaxStrikes {
+					//ban
+					userch, _ := ctx.Session.UserChannelCreate(ctx.User.ID)
+					ctx.Session.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for acquiring %v strikes.\nLast warning was: %v", ctx.Guild.Name, dbg.MaxStrikes, reason))
+					err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, ctx.User.ID, fmt.Sprintf("Acquired %v strikes.", dbg.MaxStrikes), 0)
+					if err != nil {
+						return false
+					}
 
-							ctx.SendEmbed(embed)
-
-						} else {
-							ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
-							ctx.Send(fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!\nYou are currently at strike %v/%v", msg.Author.Mention(), dbs.Strikes+1, dbg.MaxStrikes))
-							db.Exec("INSERT INTO strikes(guildid, userid, strikes) VALUES ($1, $2, $3);", ctx.Guild.ID, ctx.User.ID, 1)
-						}
+					ctx.Send(fmt.Sprintf("%v has been banned after acquiring too many strikes. Miss them.", ctx.User.Mention()))
+					_, err := db.Exec("DELETE FROM strikes WHERE userid = $1 AND guildid = $2;", ctx.User.ID, ctx.Guild.ID)
+					if err != nil {
+						fmt.Println(err)
 					}
 				} else {
-					if dbs.Strikes+1 >= dbg.MaxStrikes {
-						ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
-						userch, _ := ctx.Session.UserChannelCreate(ctx.User.ID)
-						ctx.Session.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for triggering the filter.\n- %v", ctx.Guild.Name, trigger))
-						err = ctx.Session.GuildBanCreateWithReason(ctx.Guild.ID, ctx.User.ID, fmt.Sprintf("Triggering filter: %v", trigger), 0)
-						if err != nil {
-							ctx.Send(err.Error())
-							return true
-						}
-
-						embed := &discordgo.MessageEmbed{
-							Title:       "User banned",
-							Description: "Filter triggered",
-							Fields: []*discordgo.MessageEmbedField{
-								{
-									Name:   "Username",
-									Value:  fmt.Sprintf("%v", ctx.User.Mention()),
-									Inline: true,
-								},
-								{
-									Name:   "ID",
-									Value:  fmt.Sprintf("%v", ctx.User.ID),
-									Inline: true,
-								},
-							},
-							Color: dColorRed,
-						}
-
-						ctx.SendEmbed(embed)
-
-						_, err := db.Exec("DELETE FROM strikes WHERE userid = $1 AND guildid = $2;", ctx.User.ID, ctx.Guild.ID)
-						if err != nil {
-							fmt.Println(err)
-						}
-
-					} else {
-						ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
-						ctx.Send(fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!\nYou are currently at strike %v/%v", msg.Author.Mention(), dbs.Strikes+1, dbg.MaxStrikes))
-						db.Exec("UPDATE strikes SET strikes = $1 WHERE userid = $2 AND guildid = $3;", dbs.Strikes+1, ctx.User.ID, ctx.Guild.ID)
-					}
+					//insert warn
+					userch, _ := ctx.Session.UserChannelCreate(ctx.User.ID)
+					ctx.Session.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been warned in %v.\nWarned for: %v", ctx.Guild.Name, reason))
+					ctx.Send(fmt.Sprintf("%v has been warned\nThey are currently at strike %v/%v", ctx.User.Mention(), strikeCount+1, dbg.MaxStrikes))
+					db.Exec("INSERT INTO strikes(guildid, userid, reason, executorid, tstamp) VALUES ($1, $2, $3, $4, $5);", ctx.Guild.ID, ctx.User.ID, reason, ctx.Session.State.User.ID, time.Now())
 				}
 
 			} else {

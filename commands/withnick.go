@@ -2,12 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"meido-test/service"
+	"meido/service"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/ninedraft/simplepaste"
 )
 
 var WithNick = Command{
@@ -16,7 +14,6 @@ var WithNick = Command{
 	Triggers:      []string{"m?withnick"},
 	Usage:         "m?withnick meido",
 	RequiredPerms: discordgo.PermissionSendMessages,
-	RequiresOwner:true,
 	Execute: func(args []string, ctx *service.Context) {
 
 		var (
@@ -44,23 +41,25 @@ var WithNick = Command{
 		}
 
 		board := fmt.Sprintf("Total users with name %v: %v\n", newName, len(memberList))
-		if len(memberList) > 20 && len(memberList) < 5000 {
-			text := ""
-			for _, mem := range memberList {
-				text += fmt.Sprintf("%v\t%v\n", mem.User.String(), mem.User.ID)
+		if len(memberList) <= 20 {
+			for i := 0; i < len(memberList); i++ {
+				mem := memberList[i]
+
+				board += fmt.Sprintf("%v\t[%v]\n", mem.User.String(), mem.User.ID)
+
 			}
-			paste := simplepaste.NewPaste(fmt.Sprintf("Users with name %v: %v", newName, time.Now().Format(time.RFC1123)), text)
-			res, err := pbAPI.SendPaste(paste)
+
+		} else if len(memberList) > 20 && len(memberList) < 1000 {
+			text := fmt.Sprintf("Total users with name %v: %v\n\n\n", newName, len(memberList))
+			for _, mem := range memberList {
+				text += fmt.Sprintf("%v\t-%v\n", mem.User.String(), mem.User.ID)
+			}
+
+			res, err := OWOApi.Upload(text)
 			if err != nil {
 				board += "Error getting list."
 			}
 			board += res
-		} else {
-			board += "```\n"
-			for _, mem := range memberList {
-				board += fmt.Sprintf("%v\t(%v)\n", mem.User.String(), mem.User.ID)
-			}
-			board += "```"
 		}
 		ctx.Send(board)
 	},

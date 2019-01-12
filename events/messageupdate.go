@@ -1,10 +1,10 @@
 package events
 
 import (
-	"database/sql"
 	"fmt"
-	"meido-test/models"
+	"meido/models"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -82,91 +82,38 @@ func MessageUpdateHandler(s *discordgo.Session, m *discordgo.MessageUpdate) {
 			}
 
 			if dbg.UseStrikes {
-				dbs := models.Strikes{}
 
-				row := db.QueryRow("SELECT * FROM strikes WHERE guildid = $1 AND userid = $2;", m.GuildID, m.Author.ID)
-				err := row.Scan(&dbs.Uid, &dbs.Guildid, &dbs.Userid, &dbs.Strikes)
+				reason := fmt.Sprintf("Triggering filter: %v", trigger)
+
+				strikeCount := 0
+
+				row := db.QueryRow("SELECT COUNT(*) FROM strikes WHERE guildid = $1 AND userid = $2;", m.Message.GuildID, m.Author.ID)
+				err := row.Scan(&strikeCount)
 				if err != nil {
-					if err == sql.ErrNoRows {
-						if dbg.MaxStrikes < 2 {
-							s.ChannelMessageDelete(m.ChannelID, m.ID)
-							userch, _ := s.UserChannelCreate(m.Author.ID)
-							s.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for triggering the filter.\n- %v", g.Name, trigger))
-							err = s.GuildBanCreateWithReason(m.GuildID, m.Author.ID, fmt.Sprintf("Triggering filter: %v", trigger), 0)
-							if err != nil {
-								s.ChannelMessageSend(ch.ID, err.Error())
-								return
-							}
-
-							embed := &discordgo.MessageEmbed{
-								Title:       "User banned",
-								Description: "Filter triggered",
-								Fields: []*discordgo.MessageEmbedField{
-									{
-										Name:   "Username",
-										Value:  fmt.Sprintf("%v", m.Author.Mention()),
-										Inline: true,
-									},
-									{
-										Name:   "ID",
-										Value:  fmt.Sprintf("%v", m.Author.ID),
-										Inline: true,
-									},
-								},
-								Color: dColorRed,
-							}
-
-							s.ChannelMessageSendEmbed(ch.ID, embed)
-
-						} else {
-							s.ChannelMessageDelete(ch.ID, m.ID)
-							s.ChannelMessageSend(ch.ID, fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!\nYou are currently at strike %v/%v", m.Author.Mention(), dbs.Strikes+1, dbg.MaxStrikes))
-							db.Exec("INSERT INTO strikes(guildid, userid, strikes) VALUES ($1, $2, $3);", g.ID, m.Author.ID, 1)
-						}
-					}
-				} else {
-					if dbs.Strikes+1 >= dbg.MaxStrikes {
-						s.ChannelMessageDelete(m.ChannelID, m.ID)
-						userch, _ := s.UserChannelCreate(m.Author.ID)
-						s.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for triggering the filter.\n- %v", g.Name, trigger))
-						err = s.GuildBanCreateWithReason(g.ID, m.Author.ID, fmt.Sprintf("Triggering filter: %v", trigger), 0)
-						if err != nil {
-							s.ChannelMessageSend(ch.ID, err.Error())
-							return
-						}
-
-						embed := &discordgo.MessageEmbed{
-							Title:       "User banned",
-							Description: "Filter triggered",
-							Fields: []*discordgo.MessageEmbedField{
-								{
-									Name:   "Username",
-									Value:  fmt.Sprintf("%v", m.Author.Mention()),
-									Inline: true,
-								},
-								{
-									Name:   "ID",
-									Value:  fmt.Sprintf("%v", m.Author.ID),
-									Inline: true,
-								},
-							},
-							Color: dColorRed,
-						}
-
-						s.ChannelMessageSendEmbed(ch.ID, embed)
-
-						_, err := db.Exec("DELETE FROM strikes WHERE userid = $1 AND guildid = $2;", m.Author.ID, g.ID)
-						if err != nil {
-							fmt.Println(err)
-						}
-
-					} else {
-						s.ChannelMessageDelete(ch.ID, m.ID)
-						s.ChannelMessageSend(ch.ID, fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!\nYou are currently at strike %v/%v", m.Author.Mention(), dbs.Strikes+1, dbg.MaxStrikes))
-						db.Exec("UPDATE strikes SET strikes = $1 WHERE userid = $2 AND guildid = $3;", dbs.Strikes+1, m.Author.ID, g.ID)
-					}
+					return
 				}
 
+				if strikeCount+1 >= dbg.MaxStrikes {
+					//ban
+					userch, _ := s.UserChannelCreate(m.Author.ID)
+					s.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been banned from %v for acquiring %v strikes.\nLast warning was: %v", g.Name, dbg.MaxStrikes, reason))
+					err = s.GuildBanCreateWithReason(m.Message.GuildID, m.Author.ID, fmt.Sprintf("Acquired %v strikes.", dbg.MaxStrikes), 0)
+					if err != nil {
+						return
+					}
+
+					s.ChannelMessageSend(ch.ID, fmt.Sprintf("%v has been banned after acquiring too many strikes. Miss them.", m.Author.Mention()))
+					_, err := db.Exec("DELETE FROM strikes WHERE userid = $1 AND guildid = $2;", m.Author.ID, g.ID)
+					if err != nil {
+						fmt.Println(err)
+					}
+				} else {
+					//insert warn
+					userch, _ := s.UserChannelCreate(m.Author.ID)
+					s.ChannelMessageSend(userch.ID, fmt.Sprintf("You have been warned in %v.\nWarned for: %v\nYou are currently at strike %v/%v", g.Name, reason, strikeCount+1, dbg.MaxStrikes))
+					s.ChannelMessageSend(ch.ID, fmt.Sprintf("%v has been warned\nThey are currently at strike %v/%v", m.Author.Mention(), strikeCount+1, dbg.MaxStrikes))
+					db.Exec("INSERT INTO strikes(guildid, userid, reason, executorid, tstamp) VALUES ($1, $2, $3, $4, $5);", g.ID, m.Author.ID, reason, s.State.User.ID, time.Now())
+				}
 			} else {
 				s.ChannelMessageDelete(ch.ID, m.ID)
 				s.ChannelMessageSend(ch.ID, fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!", m.Author.Mention()))

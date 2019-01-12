@@ -3,8 +3,8 @@ package commands
 import (
 	"database/sql"
 	"fmt"
-	"meido-test/models"
-	"meido-test/service"
+	"meido/models"
+	"meido/service"
 	"strconv"
 	"strings"
 	"time"

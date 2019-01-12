@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"meido-test/commands"
-	"meido-test/events"
+	"meido/commands"
+	"meido/events"
+	"meido/owo"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/ninedraft/simplepaste"
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/lib/pq"
@@ -19,7 +18,7 @@ import (
 
 type Config struct {
 	Token            string   `json:"Token"`
-	PBToken          string   `json:"PBToken"`
+	OWOToken         string   `json:"OWOToken"`
 	ConnectionString string   `json:"Connectionstring"`
 	DmLogChannels    []string `json:"DmLogChannels"`
 	OwnerIds         []string `json:"OwnerIds"`
@@ -61,9 +60,9 @@ func (b *Bot) Run() {
 
 	defer db.Close()
 
-	pbAPI := simplepaste.NewAPI(config.PBToken)
+	OWOApi := owo.NewOWOClient(config.OWOToken)
 
-	commands.Initialize(client, &config.OwnerIds, &config.DmLogChannels, db, pbAPI)
+	commands.Initialize(client, &config.OwnerIds, &config.DmLogChannels, db, OWOApi)
 	events.Initialize(db)
 
 	addHandlers(client)
@@ -86,6 +85,7 @@ func addHandlers(s *discordgo.Session) {
 	go s.AddHandler(events.GuildAvailableHandler)
 	go s.AddHandler(events.GuildRoleDeleteHandler)
 	go s.AddHandler(events.MemberJoinedHandler)
+	go s.AddHandler(events.MemberLeaveHandler)
 	go s.AddHandler(events.MessageUpdateHandler)
 	go s.AddHandler(events.ReadyHandler)
 	go s.AddHandler(events.DisconnectHandler)

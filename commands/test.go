@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"meido-test/service"
+	"meido/service"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
