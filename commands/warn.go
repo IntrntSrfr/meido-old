@@ -127,6 +127,7 @@ var StrikeLog = Command{
 	Triggers:      []string{"m?strikelog"},
 	Usage:         "m?strikelog 163454407999094786\nm?strikelog @internet surfer#0001",
 	RequiredPerms: discordgo.PermissionBanMembers,
+	RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
 
 		var err error

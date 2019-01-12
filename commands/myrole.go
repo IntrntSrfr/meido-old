@@ -164,7 +164,10 @@ var MyRole = Command{
 		}
 
 		if targetUser == nil {
-			targetUser.User = ctx.Message.Author
+			targetUser, err = ctx.Session.State.Member(ctx.Guild.ID, ctx.Message.Author.ID)
+			if err != nil {
+				return
+			}
 		}
 
 		if targetUser.User.Bot {
