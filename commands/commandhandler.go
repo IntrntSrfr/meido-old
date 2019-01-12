@@ -171,7 +171,10 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	startTime := time.Now()
 
-	context := service.NewContext(s, m.Message, startTime)
+	context, err := service.NewContext(s, m.Message, startTime)
+	if err != nil {
+		return
+	}
 
 	//fmt.Println(fmt.Sprintf("[%v] - context in %v", id, time.Now().Sub(startTime)))
 

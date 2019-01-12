@@ -20,10 +20,10 @@ type Context struct {
 
 var ctx = Context{}
 
-func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) Context {
+func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) (Context, error) {
 	ch, err := s.State.Channel(m.ChannelID)
 	if err != nil {
-		ch = nil
+		return Context{}, err
 	}
 
 	g := &discordgo.Guild{}
@@ -31,7 +31,7 @@ func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) Context
 	if ch.Type == discordgo.ChannelTypeGuildText {
 		g, err = s.State.Guild(ch.GuildID)
 		if err != nil {
-			g = nil
+			return Context{}, err
 		}
 	}
 	/*
@@ -47,7 +47,7 @@ func NewContext(s *discordgo.Session, m *discordgo.Message, t time.Time) Context
 		Channel:   ch,
 		Guild:     g,
 		StartTime: t,
-	}
+	}, nil
 }
 
 func (c *Context) Send(a ...interface{}) (*discordgo.Message, error) {
