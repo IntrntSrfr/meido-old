@@ -157,7 +157,7 @@ var StrikeLog = Command{
 			Fields: []*discordgo.MessageEmbedField{},
 		}
 
-		rows, err := db.Query("SELECT * FROM strikes WHERE userid=$1 AND guildid = $2;", targetUser.ID, ctx.Guild.ID)
+		rows, err := db.Query("SELECT * FROM strikes WHERE userid=$1 AND guildid=$2;", targetUser.ID, ctx.Guild.ID)
 		if err != nil {
 			ctx.Send("No strikes.")
 			return
@@ -256,7 +256,11 @@ var RemoveStrike = Command{
 		dbs := models.Strikes{}
 		row := db.QueryRow("SELECT guildid FROM strikes WHERE uid = $1;", uid)
 
-		row.Scan(&dbs.Guildid)
+		err = row.Scan(&dbs.Guildid)
+		if err != nil {
+			ctx.Send("Strike does not exist.")
+			return
+		}
 		if dbs.Guildid != ctx.Guild.ID {
 			ctx.Send("nice try")
 			return
