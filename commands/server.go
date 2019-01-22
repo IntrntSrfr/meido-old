@@ -2,7 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"math"
 	"meido/service"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -34,11 +36,16 @@ var Server = Command{
 			return
 		}
 
-		t, err := ctx.Guild.JoinedAt.Parse()
+		id, err := strconv.ParseInt(ctx.Guild.ID, 0, 63)
 		if err != nil {
-			ctx.Send("error occured ", err)
 			return
 		}
+
+		id = ((id >> 22) + 1420070400000) / 1000
+
+		dur := time.Since(time.Unix(int64(id), 0))
+
+		ts := time.Unix(id, 0)
 
 		embed := discordgo.MessageEmbed{
 			Color: dColorWhite,
@@ -52,9 +59,8 @@ var Server = Command{
 					Inline: true,
 				},
 				&discordgo.MessageEmbedField{
-					Name:   "Created",
-					Value:  fmt.Sprintf("%v", t.Format(time.RFC1123)),
-					Inline: true,
+					Name:  "Creation date",
+					Value: fmt.Sprintf("%v\n%v days ago", ts.Format(time.RFC1123), math.Floor(dur.Hours()/float64(24))),
 				},
 				&discordgo.MessageEmbedField{
 					Name:   "Members",

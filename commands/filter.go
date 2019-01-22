@@ -59,8 +59,8 @@ var FilterInfo = Command{
 			if err == sql.ErrNoRows {
 			} else {
 				ctx.Send("error occured: " + err.Error())
-				return
 			}
+			return
 		}
 
 		filterlist := ""
@@ -87,8 +87,8 @@ var FilterInfo = Command{
 			if err == sql.ErrNoRows {
 			} else {
 				ctx.Send("error occured: " + err.Error())
-				return
 			}
+			return
 		}
 
 		embed := discordgo.MessageEmbed{
@@ -131,8 +131,8 @@ var FilterWordList = Command{
 		if err != nil {
 			if err == sql.ErrNoRows {
 				ctx.Send("The filter is empty.")
-				return
 			}
+			return
 		}
 
 		filterlist := "```\nList of currently filtered phrases\n"

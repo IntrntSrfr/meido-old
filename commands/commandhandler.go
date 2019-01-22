@@ -247,11 +247,6 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	g, err := s.Guild(ch.GuildID)
-	if err != nil {
-		return
-	}
-
 	perms, err := s.State.UserChannelPermissions(m.Author.ID, ch.ID)
 	if err != nil {
 		return
@@ -308,15 +303,15 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 
-			if botPerms&cmd.RequiredPerms == 0 {
+			if botPerms&cmd.RequiredPerms == 0 && perms&discordgo.PermissionAdministrator == 0 {
 				context.Send(fmt.Sprintf("I am missing permissions: %v", permMap[cmd.RequiredPerms]))
 				return
 			}
 
 			go cmd.Execute(args, &context)
 			//fmt.Println(fmt.Sprintf("[%v] - executed command in %v\n", id, time.Now().Sub(startTime)))
-			db.Exec("INSERT INTO commandlog(command, args, userid, guildid, channelid, messageid, tstamp) VALUES($1, $2, $3, $4, $5, $6, $7)", cmd.Name, strings.Join(args, " "), m.Author.ID, g.ID, ch.ID, m.ID, time.Now())
-			fmt.Println(fmt.Sprintf("\nCommand executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]", args, m.Author.String(), m.Author.ID, g.Name, g.ID, ch.Name, ch.ID))
+			db.Exec("INSERT INTO commandlog(command, args, userid, guildid, channelid, messageid, tstamp) VALUES($1, $2, $3, $4, $5, $6, $7)", cmd.Name, strings.Join(args, " "), m.Author.ID, context.Guild.ID, ch.ID, m.ID, time.Now())
+			fmt.Println(fmt.Sprintf("\nCommand executed\nCommand: %v\nUser: %v [%v]\nSource: %v [%v] - #%v [%v]", args, m.Author.String(), m.Author.ID, context.Guild.Name, context.Guild.ID, ch.Name, ch.ID))
 		}
 	}
 	//id++
