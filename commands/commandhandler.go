@@ -353,6 +353,8 @@ func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate)
 		}
 
 		if isIllegal {
+			ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
+
 			row := db.QueryRow("SELECT usestrikes, maxstrikes FROM discordguilds WHERE guildid = $1;", ctx.Guild.ID)
 
 			dbg := models.DiscordGuild{}
@@ -397,7 +399,6 @@ func checkFilter(ctx *service.Context, perms *int, msg *discordgo.MessageCreate)
 				}
 
 			} else {
-				ctx.Session.ChannelMessageDelete(ctx.Channel.ID, msg.ID)
 				ctx.Send(fmt.Sprintf("%v, you are not allowed to use a banned word/phrase!", msg.Author.Mention()))
 			}
 		}
