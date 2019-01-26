@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"meido/models"
-	"meido/owo"
-	"meido/service"
 	"os"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/intrntsrfr/meido/models"
+	"github.com/intrntsrfr/meido/owo"
+	"github.com/intrntsrfr/meido/service"
 
 	"github.com/bwmarrin/discordgo"
 )

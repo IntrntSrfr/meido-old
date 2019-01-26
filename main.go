@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"meido/commands"
-	"meido/events"
-	"meido/owo"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/intrntsrfr/meido/commands"
+	"github.com/intrntsrfr/meido/events"
+	"github.com/intrntsrfr/meido/owo"
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/lib/pq"

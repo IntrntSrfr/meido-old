@@ -2,7 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"meido/service"
+
+	"github.com/intrntsrfr/meido/service"
 
 	"github.com/bwmarrin/discordgo"
 )

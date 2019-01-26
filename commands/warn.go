@@ -2,11 +2,12 @@ package commands
 
 import (
 	"fmt"
-	"meido/models"
-	"meido/service"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/intrntsrfr/meido/models"
+	"github.com/intrntsrfr/meido/service"
 
 	"github.com/bwmarrin/discordgo"
 )

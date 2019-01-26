@@ -3,10 +3,11 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"meido/service"
 	"os"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/intrntsrfr/meido/service"
 
 	"github.com/bwmarrin/discordgo"
 )

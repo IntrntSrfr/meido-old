@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"meido/service"
+	"github.com/intrntsrfr/meido/service"
 
 	"github.com/bwmarrin/discordgo"
 )

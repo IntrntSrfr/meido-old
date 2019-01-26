@@ -3,10 +3,11 @@ package commands
 import (
 	"database/sql"
 	"fmt"
-	"meido/models"
-	"meido/service"
 	"strconv"
 	"strings"
+
+	"github.com/intrntsrfr/meido/models"
+	"github.com/intrntsrfr/meido/service"
 
 	"github.com/bwmarrin/discordgo"
 )

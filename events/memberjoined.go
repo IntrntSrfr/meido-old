@@ -3,8 +3,9 @@ package events
 import (
 	"database/sql"
 	"fmt"
-	"meido/models"
 	"time"
+
+	"github.com/intrntsrfr/meido/models"
 
 	"github.com/bwmarrin/discordgo"
 )

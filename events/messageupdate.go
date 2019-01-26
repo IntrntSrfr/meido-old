@@ -2,9 +2,10 @@ package events
 
 import (
 	"fmt"
-	"meido/models"
 	"strings"
 	"time"
+
+	"github.com/intrntsrfr/meido/models"
 
 	"github.com/bwmarrin/discordgo"
 )

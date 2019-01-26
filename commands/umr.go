@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"meido/service"
 	"os"
 	"path/filepath"
+
+	"github.com/intrntsrfr/meido/service"
 
 	"github.com/bwmarrin/discordgo"
 )

@@ -1,7 +1,7 @@
 package events
 
 import (
-	"meido/models"
+	"github.com/intrntsrfr/meido/models"
 
 	"github.com/bwmarrin/discordgo"
 )
