@@ -164,20 +164,21 @@ var StrikeLog = Command{
 			return
 		}
 		count := 0
-		for rows.Next() {
-			count++
+		row := db.QueryRow("SELECT COUNT(*) FROM strikes WHERE userid=$1 AND guildid=$2;", targetUser.ID, ctx.Guild.ID)
+		err = row.Scan(&count)
+		if err != nil {
+			ctx.Send("No strikes.")
+			return
 		}
 
 		if count <= 0 {
 			embed.Description = "No strikes."
 		} else {
-
 			for rows.Next() {
 				dbs := models.Strikes{}
 				err = rows.Scan(&dbs.Uid, &dbs.Guildid, &dbs.Userid, &dbs.Reason, &dbs.Executorid, &dbs.Tstamp)
 				if err != nil {
-					fmt.Println(err)
-					return
+					continue
 				}
 				exec := ""
 				mem, err := ctx.Session.State.Member(ctx.Guild.ID, dbs.Executorid)
@@ -187,7 +188,7 @@ var StrikeLog = Command{
 					exec = mem.User.String()
 				}
 				embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-					Name:  fmt.Sprintf("Strike ID: %v - At %v by %v", dbs.Uid, dbs.Tstamp.Format(time.RFC1123), exec),
+					Name:  fmt.Sprintf("Strike ID: %v - At %v by %v", dbs.Uid, dbs.Tstamp.Format(time.RFC822), exec),
 					Value: fmt.Sprintf("- %v", dbs.Reason),
 				})
 			}
