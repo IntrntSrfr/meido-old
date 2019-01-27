@@ -49,6 +49,7 @@ var Inrole = Command{
 
 		if len(memberList) <= 0 {
 			ctx.Send("No users in that role.")
+			return
 		}
 
 		board := fmt.Sprintf("Total users in role %v: %v\n", selectedRole.Name, len(memberList))
