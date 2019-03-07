@@ -185,60 +185,25 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if ch.Type == discordgo.ChannelTypeDM {
-		if strings.ToLower(m.Content) == "enroll me" {
-			cfc, err := s.State.Guild("320896491596283906")
+		dmembed := discordgo.MessageEmbed{
+			Color:       dColorWhite,
+			Title:       fmt.Sprintf("Message from %v", m.Author.String()),
+			Description: m.Content,
+			Footer:      &discordgo.MessageEmbedFooter{Text: m.Author.ID},
+			Timestamp:   string(m.Timestamp),
+		}
+
+		if len(m.Attachments) > 0 {
+			dmembed.Image = &discordgo.MessageEmbedImage{URL: m.Attachments[0].URL}
+		}
+
+		for i := range dmLogChannels {
+			dmch := dmLogChannels[i]
+
+			_, err := s.ChannelMessageSendEmbed(dmch, &dmembed)
 			if err != nil {
-				return
-			}
-
-			var enrolledRole *discordgo.Role
-
-			groles := cfc.Roles
-
-			for i := range groles {
-				role := groles[i]
-				if role.ID == "404333507918430212" {
-					enrolledRole = role
-				}
-			}
-
-			if enrolledRole == nil {
-				return
-			}
-
-			mem, err := s.State.Member(cfc.ID, m.Author.ID)
-			if err != nil {
-				return
-			}
-
-			if mem.User.ID == m.Author.ID {
-				err := s.GuildMemberRoleAdd(cfc.ID, m.Author.ID, enrolledRole.ID)
-				if err != nil {
-					return
-				}
-				s.ChannelMessageSend(m.ChannelID, "You're now enrolled, congratulations for passing the IQ test.")
-			}
-		} else {
-			dmembed := discordgo.MessageEmbed{
-				Color:       dColorWhite,
-				Title:       fmt.Sprintf("Message from %v", m.Author.String()),
-				Description: m.Content,
-				Footer:      &discordgo.MessageEmbedFooter{Text: m.Author.ID},
-				Timestamp:   string(m.Timestamp),
-			}
-
-			if len(m.Attachments) > 0 {
-				dmembed.Image = &discordgo.MessageEmbedImage{URL: m.Attachments[0].URL}
-			}
-
-			for i := range dmLogChannels {
-				dmch := dmLogChannels[i]
-
-				_, err := s.ChannelMessageSendEmbed(dmch, &dmembed)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
+				fmt.Println(err)
+				continue
 			}
 		}
 		return

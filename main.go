@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,9 @@ import (
 	"github.com/intrntsrfr/meido/commands"
 	"github.com/intrntsrfr/meido/events"
 	"github.com/intrntsrfr/meido/owo"
+
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/lib/pq"
@@ -36,6 +40,10 @@ func main() {
 }
 
 func (b *Bot) Run() {
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	file, e := ioutil.ReadFile("./config.json")
 	if e != nil {
@@ -73,22 +81,21 @@ func (b *Bot) Run() {
 		fmt.Println(err)
 		return
 	}
+	defer client.Close()
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-
-	client.Close()
 }
 
 func addHandlers(s *discordgo.Session) {
-	go s.AddHandler(events.GuildAvailableHandler)
-	go s.AddHandler(events.GuildRoleDeleteHandler)
-	go s.AddHandler(events.MemberJoinedHandler)
-	go s.AddHandler(events.MemberLeaveHandler)
-	go s.AddHandler(events.MessageUpdateHandler)
-	go s.AddHandler(events.ReadyHandler)
-	go s.AddHandler(events.DisconnectHandler)
-	go s.AddHandler(commands.MessageCreateHandler)
+	s.AddHandler(events.GuildAvailableHandler)
+	s.AddHandler(events.GuildRoleDeleteHandler)
+	s.AddHandler(events.MemberJoinedHandler)
+	s.AddHandler(events.MemberLeaveHandler)
+	s.AddHandler(events.MessageUpdateHandler)
+	s.AddHandler(events.ReadyHandler)
+	s.AddHandler(events.DisconnectHandler)
+	s.AddHandler(commands.MessageCreateHandler)
 }
