@@ -94,7 +94,7 @@ var SetUserRole = Command{
 }
 
 var ListUserRoles = Command{
-	Name:          "listuserroles",
+	Name:          "List userroles",
 	Description:   "Sets a users custom role. First provide the user, followed by the role.",
 	Triggers:      []string{"m?listuserroles"},
 	Usage:         "m?listuserroles",
@@ -129,7 +129,6 @@ var ListUserRoles = Command{
 			}
 			count++
 		}
-		fmt.Println(text)
 		link, err := OWOApi.Upload(text)
 		if err != nil {
 			ctx.Send("Error getting user roles.")

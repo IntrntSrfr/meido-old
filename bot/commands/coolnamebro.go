@@ -68,7 +68,7 @@ var CoolNameBro = Command{
 
 var NiceNameBro = Command{
 	Name:          "Nice name bro",
-	Description:   "Renames attentionseeking nick- or usernames.",
+	Description:   "Removes the nickname from users with a provided name.",
 	Triggers:      []string{"m?nicenamebro", "m?nnb"},
 	Usage:         "m?nicenamebro my name is shit",
 	RequiredPerms: discordgo.PermissionManageNicknames,

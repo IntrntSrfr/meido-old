@@ -63,6 +63,6 @@ var WithNick = Command{
 			}
 			board.WriteString(res)
 		}
-		ctx.Send(board)
+		ctx.Send(board.String())
 	},
 }
