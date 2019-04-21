@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,92 +9,52 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/intrntsrfr/meido/commands"
-	"github.com/intrntsrfr/meido/events"
-	"github.com/intrntsrfr/meido/owo"
-
 	"net/http"
 	_ "net/http/pprof"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/intrntsrfr/meido/bot"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 )
 
-type Config struct {
-	Token            string   `json:"Token"`
-	OWOToken         string   `json:"OWOToken"`
-	ConnectionString string   `json:"Connectionstring"`
-	DmLogChannels    []string `json:"DmLogChannels"`
-	OwnerIds         []string `json:"OwnerIds"`
-}
-
-type Bot struct {
-}
-
-var config Config
-
 func main() {
-	bot := Bot{}
-	bot.Run()
-}
-
-func (b *Bot) Run() {
-
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	file, e := ioutil.ReadFile("./config.json")
-	if e != nil {
-		fmt.Printf("Config file not found.")
-		return
-	}
-
-	json.Unmarshal(file, &config)
-
-	token := config.Token
-
-	client, err := discordgo.New("Bot " + token)
-
+	jeff := zap.NewDevelopmentConfig()
+	jeff.OutputPaths = []string{"./logs.txt"}
+	jeff.ErrorOutputPaths = []string{"./logs.txt"}
+	logger, err := jeff.Build()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	defer logger.Sync()
+	logger.Info("Logger construction succeeded")
 
-	db, err := sql.Open("postgres", config.ConnectionString)
+	file, err := ioutil.ReadFile("./config.json")
 	if err != nil {
-		panic("could not connect to db " + err.Error())
+		fmt.Printf("Config file not found.\nPlease press enter.")
+		return
 	}
+	var config bot.Config
+	json.Unmarshal(file, &config)
 
-	defer db.Close()
-
-	OWOApi := owo.NewOWOClient(config.OWOToken)
-
-	commands.Initialize(client, &config.OwnerIds, &config.DmLogChannels, db, OWOApi)
-	events.Initialize(db)
-
-	addHandlers(client)
-
-	err = client.Open()
+	client, err := bot.NewBot(&config, logger.Named("discord"))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer client.Close()
 
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	err = client.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-}
-
-func addHandlers(s *discordgo.Session) {
-	s.AddHandler(events.GuildAvailableHandler)
-	s.AddHandler(events.GuildRoleDeleteHandler)
-	s.AddHandler(events.MemberJoinedHandler)
-	s.AddHandler(events.MemberLeaveHandler)
-	s.AddHandler(events.MessageUpdateHandler)
-	s.AddHandler(events.ReadyHandler)
-	s.AddHandler(events.DisconnectHandler)
-	s.AddHandler(commands.MessageCreateHandler)
 }
