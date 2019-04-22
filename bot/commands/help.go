@@ -38,19 +38,21 @@ var Help = Command{
 			}
 		} else {
 
-			comm := args[1]
+			comm := args[1:]
+
+			scomm := strings.Join(comm, " ")
 
 			triggerCommand := ""
 			for _, val := range comms {
 
-				if strings.ToLower(comm) == strings.ToLower(val.Name) {
+				if strings.ToLower(scomm) == strings.ToLower(val.Name) {
 					triggerCommand = val.Name
 					break
 				}
 
 				if triggerCommand == "" {
 					for _, com := range val.Triggers {
-						if strings.ToLower(comm) == strings.ToLower(com) {
+						if strings.ToLower(scomm) == strings.ToLower(com) {
 							triggerCommand = val.Name
 						}
 					}

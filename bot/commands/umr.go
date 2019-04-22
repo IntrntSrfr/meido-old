@@ -20,7 +20,7 @@ var Img = Command{
 			var path string
 			switch args[1] {
 			case "umr":
-				path, _ = filepath.Abs("../meido/stuff/umr.jpg")
+				path, _ = filepath.Abs("../meido/bot/stuff/umr.jpg")
 				file, err := os.Open(path)
 				if err != nil {
 					ctx.Send(err.Error())
@@ -30,7 +30,7 @@ var Img = Command{
 
 				ctx.Session.ChannelFileSend(ctx.Channel.ID, "umr.jpg", file)
 			case "hamster":
-				path, _ = filepath.Abs("../meido/stuff/hamster.png")
+				path, _ = filepath.Abs("../meido/bot/stuff/hamster.png")
 				file, err := os.Open(path)
 				if err != nil {
 					ctx.Send(err.Error())
