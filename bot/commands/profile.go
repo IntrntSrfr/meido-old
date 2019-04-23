@@ -105,7 +105,6 @@ var ShowProfile = Command{
 				},
 			},
 		}
-
 		ctx.SendEmbed(&embed)
 	},
 }

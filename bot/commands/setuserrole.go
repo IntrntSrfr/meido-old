@@ -109,8 +109,8 @@ var ListUserRoles = Command{
 		defer rows.Close()
 
 		text := fmt.Sprintf("Userroles in %v\n\n", ctx.Guild.Name)
+		count := 0
 		for rows.Next() {
-			count := 0
 			dbur := models.Userrole{}
 			err := rows.Scan(&dbur.Roleid, &dbur.Userid)
 			if err != nil {
