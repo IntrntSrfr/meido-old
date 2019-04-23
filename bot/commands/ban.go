@@ -15,6 +15,7 @@ var Ban = Command{
 	Description:   "Bans a user. Reason and prune days is optional.",
 	Triggers:      []string{"m?ban", "m?b", ".b", ".ban"},
 	Usage:         ".b @internet surfer#0001\n.b 163454407999094786\n.b 163454407999094786 being very mean\n.b 163454407999094786 1 being very mean\n.b 163454407999094786 1",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionBanMembers,
 	Execute: func(args []string, ctx *service.Context) {
 

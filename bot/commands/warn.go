@@ -17,6 +17,7 @@ var Warn = Command{
 	Description:   "Warns a user, adding a strike. Does not work if strike system is disabled.",
 	Triggers:      []string{"m?warn", ".warn"},
 	Usage:         "m?warn 163454407999094786\n.warn @internet surfer#0001",
+	Category:      Strikes,
 	RequiredPerms: discordgo.PermissionBanMembers,
 	Execute: func(args []string, ctx *service.Context) {
 
@@ -127,6 +128,7 @@ var StrikeLog = Command{
 	Description:   "Shows a users strikes.",
 	Triggers:      []string{"m?strikelog"},
 	Usage:         "m?strikelog 163454407999094786\nm?strikelog @internet surfer#0001",
+	Category:      Strikes,
 	RequiredPerms: discordgo.PermissionBanMembers,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -204,6 +206,7 @@ var StrikeLogAll = Command{
 	Description:   "Shows all strikes in the guild.",
 	Triggers:      []string{"m?strikelogall"},
 	Usage:         "m?strikelog",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionBanMembers,
 	Execute: func(args []string, ctx *service.Context) {
 		/*
@@ -245,6 +248,7 @@ var RemoveStrike = Command{
 	Description:   "Removes a strike from a user.",
 	Triggers:      []string{"m?removestrike", "m?rmstrike"},
 	Usage:         "m?removestrike 163454407999094786\nm?rmstrike @internet surfer#0001",
+	Category:      Strikes,
 	RequiredPerms: discordgo.PermissionBanMembers,
 	Execute: func(args []string, ctx *service.Context) {
 		if len(args) < 2 {
@@ -284,6 +288,7 @@ var ClearStrikes = Command{
 	Description:   "Clears the strikes on a user.",
 	Triggers:      []string{"m?clearstrikes", "m?cs"},
 	Usage:         "m?clearstrikes @internet surfer#0001\nm?cs 163454407999094786",
+	Category:      Strikes,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {

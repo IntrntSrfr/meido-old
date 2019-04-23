@@ -14,8 +14,9 @@ import (
 var Server = Command{
 	Name:          "Server",
 	Description:   "Shows information about the current server.",
-	Triggers:      []string{"m?server", "m?serverinfo", "m?sa"},
+	Triggers:      []string{"m?server", "m?s"},
 	Usage:         "m?server",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 

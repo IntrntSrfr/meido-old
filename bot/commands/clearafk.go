@@ -13,6 +13,7 @@ var ClearAFK = Command{
 	Description:   "Moves AFK users to AFK channel, if there is one.",
 	Triggers:      []string{"m?clearafk"},
 	Usage:         "m?clearafk",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionVoiceMoveMembers,
 	Execute: func(args []string, ctx *service.Context) {
 		if ctx.Guild.AfkChannelID == "" {

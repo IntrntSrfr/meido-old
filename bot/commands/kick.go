@@ -14,6 +14,7 @@ var Kick = Command{
 	Description:   "Kick a user. Reason and prune days is optional.",
 	Triggers:      []string{"m?kick", "m?k", ".kick", ".k"},
 	Usage:         "m?k @internet surfer#0001\n.k 163454407999094786",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionKickMembers,
 	Execute: func(args []string, ctx *service.Context) {
 

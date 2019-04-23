@@ -13,6 +13,7 @@ var Unban = Command{
 	Description:   "Unbans a user.",
 	Triggers:      []string{"m?unban", "m?ub", ".ub", ".unban"},
 	Usage:         ".unban 163454407999094786",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionBanMembers,
 	Execute: func(args []string, ctx *service.Context) {
 		if len(args) <= 1 {

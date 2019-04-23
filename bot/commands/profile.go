@@ -13,11 +13,12 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var Profile = Command{
+var ShowProfile = Command{
 	Name:          "Profile",
 	Description:   "Shows a user profile.",
-	Triggers:      []string{"m?profile"},
+	Triggers:      []string{"m?profile", "m?p"},
 	Usage:         "m?profile\nm?profile @internet surfer#0001\nm?profile 163454407999094786",
+	Category:      Profile,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
@@ -114,6 +115,7 @@ var Rep = Command{
 	Description:   "Gives a user a reputation point or checks whether you can give it or not.",
 	Triggers:      []string{"m?rep"},
 	Usage:         "m?rep\nm?rep @internet surfer#0001\nm?rep 163454407999094786",
+	Category:      Profile,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
@@ -211,6 +213,7 @@ var Repleaderboard = Command{
 	Description:   "Checks the reputation leaderboard.",
 	Triggers:      []string{"m?rplb"},
 	Usage:         "m?rplb",
+	Category:      Profile,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
@@ -278,6 +281,7 @@ var XpLeaderboard = Command{
 	Description:   "Checks local leaderboard.",
 	Triggers:      []string{"m?xplb"},
 	Usage:         "m?xplb",
+	Category:      Profile,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 
@@ -380,6 +384,7 @@ var XpIgnoreChannel = Command{
 	Description:   "Adds or removes a channel to or from the xp ignored list.",
 	Triggers:      []string{"m?xpignorechannel", "m?xpigch"},
 	Usage:         "m?xpigch\nm?xpigch 123123123123",
+	Category:      Profile,
 	RequiredPerms: discordgo.PermissionManageChannels,
 	Execute: func(args []string, ctx *service.Context) {
 

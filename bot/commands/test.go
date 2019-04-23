@@ -17,10 +17,8 @@ var Test = Command{
 	RequiredPerms: discordgo.PermissionSendMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
-
 		ctx.Send(fmt.Sprintf("Top role position: %v", HighestRole(ctx.Guild, ctx.User.ID)))
 		ctx.Send(fmt.Sprintf("Top color: #" + FullHex(fmt.Sprintf("%X", UserColor(ctx.Guild, ctx.User.ID)))))
-
 	},
 }
 
@@ -29,6 +27,7 @@ var Dm = Command{
 	Description:   "Sends a direct message. Owner only.",
 	Triggers:      []string{"m?dm"},
 	Usage:         "m?dm 163454407999094786 jeff",
+	Category:      Owner,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -58,6 +57,7 @@ var Msg = Command{
 	Description:   "Sends a message to a channel. Owner only.",
 	Triggers:      []string{"m?msg"},
 	Usage:         "m?msg 497106582144942101 jeff",
+	Category:      Owner,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {

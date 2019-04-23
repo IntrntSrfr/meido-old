@@ -14,6 +14,7 @@ var Img = Command{
 	Description:   "Easter eggs",
 	Triggers:      []string{"m?img"},
 	Usage:         "m?img umr",
+	Category:      Fun,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		if len(args) >= 2 {

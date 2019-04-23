@@ -27,11 +27,24 @@ const (
 	dColorWhite  = 16777215
 )
 
+type CommandType string
+
+const (
+	Filter     CommandType = "Filter"
+	Strikes    CommandType = "Strikes"
+	Moderation CommandType = "Moderation"
+	Fun        CommandType = "Fun"
+	Utility    CommandType = "Utility"
+	Profile    CommandType = "Profile"
+	Owner      CommandType = "Owner"
+)
+
 type Command struct {
 	Name          string
 	Triggers      []string
 	Description   string
 	Usage         string
+	Category      CommandType
 	RequiredPerms int
 	RequiresOwner bool
 	Execute       func(args []string, context *service.Context)
@@ -92,12 +105,14 @@ var (
 
 func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]string, DB *sql.DB, owo *owo.OWOClient, Logger *zap.Logger) {
 
+	// Filter
 	comms.RegisterCommand(FilterWord)
 	comms.RegisterCommand(FilterWordList)
 	comms.RegisterCommand(FilterInfo)
 	comms.RegisterCommand(FilterIgnoreChannel)
 	comms.RegisterCommand(ClearFilter)
 
+	// Strikes
 	comms.RegisterCommand(UseStrikes)
 	comms.RegisterCommand(SetMaxStrikes)
 	comms.RegisterCommand(ClearStrikes)
@@ -106,6 +121,7 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 	//comms.RegisterCommand(StrikeLogAll)
 	comms.RegisterCommand(RemoveStrike)
 
+	// Moderation
 	comms.RegisterCommand(Ban)
 	comms.RegisterCommand(Hackban)
 	comms.RegisterCommand(Unban)
@@ -117,10 +133,10 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 	comms.RegisterCommand(Unlock)
 	comms.RegisterCommand(SetUserRole)
 
+	// Utility
 	comms.RegisterCommand(About)
 	comms.RegisterCommand(Avatar)
 	comms.RegisterCommand(Ping)
-	comms.RegisterCommand(Img)
 	comms.RegisterCommand(Help)
 	comms.RegisterCommand(Inrole)
 	comms.RegisterCommand(WithNick)
@@ -130,21 +146,25 @@ func Initialize(s *discordgo.Session, OwnerIds *[]string, DmLogChannels *[]strin
 	//comms.RegisterCommand(User)
 	//comms.RegisterCommand(ListRoles)
 	comms.RegisterCommand(ListUserRoles)
+	comms.RegisterCommand(Invite)
+	comms.RegisterCommand(Feedback)
 	comms.RegisterCommand(MyRole)
 
-	comms.RegisterCommand(Profile)
+	// Fun
+	comms.RegisterCommand(Img)
+
+	// Profile
+	comms.RegisterCommand(ShowProfile)
 	comms.RegisterCommand(Rep)
 	comms.RegisterCommand(Repleaderboard)
 	comms.RegisterCommand(XpLeaderboard)
 	comms.RegisterCommand(GlobalXpLeaderboard)
 	comms.RegisterCommand(XpIgnoreChannel)
 
-	comms.RegisterCommand(Test)
+	// Owner
+	//comms.RegisterCommand(Test)
 	comms.RegisterCommand(Dm)
 	comms.RegisterCommand(Msg)
-
-	comms.RegisterCommand(Invite)
-	comms.RegisterCommand(Feedback)
 
 	client = s
 	db = DB

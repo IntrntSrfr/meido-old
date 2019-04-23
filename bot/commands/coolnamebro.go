@@ -17,6 +17,7 @@ var CoolNameBro = Command{
 	Description:   "Renames attentionseeking nick- or usernames.",
 	Triggers:      []string{"m?coolnamebro", "m?cnb"},
 	Usage:         "m?coolnamebro my name is shit",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionManageNicknames,
 	Execute: func(args []string, ctx *service.Context) {
 
@@ -71,6 +72,7 @@ var NiceNameBro = Command{
 	Description:   "Removes the nickname from users with a provided name.",
 	Triggers:      []string{"m?nicenamebro", "m?nnb"},
 	Usage:         "m?nicenamebro my name is shit",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionManageNicknames,
 	Execute: func(args []string, ctx *service.Context) {
 

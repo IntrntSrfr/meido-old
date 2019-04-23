@@ -15,6 +15,7 @@ var About = Command{
 	Description:   "Shows info about Meido.",
 	Triggers:      []string{"m?about"},
 	Usage:         "m?about",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		var (

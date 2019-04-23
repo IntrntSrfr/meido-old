@@ -14,6 +14,7 @@ var Ping = Command{
 	Description:   "Displays bot latency.",
 	Triggers:      []string{"m?ping"},
 	Usage:         "m?ping",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		sendTime := time.Now()

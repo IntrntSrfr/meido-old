@@ -11,6 +11,7 @@ var Unlock = Command{
 	Description:   "Unlocks a previously locked channel, setting the everyone roles send message permissions to default.",
 	Triggers:      []string{"m?unlock"},
 	Usage:         "m?unlock",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionManageRoles,
 	Execute: func(args []string, ctx *service.Context) {
 		var erole *discordgo.Role

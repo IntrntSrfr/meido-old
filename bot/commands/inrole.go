@@ -14,6 +14,7 @@ var Inrole = Command{
 	Description:   "Shows a list of who and how many users who are in a specified role.",
 	Triggers:      []string{"m?inrole"},
 	Usage:         "m?inrole gamers",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 		if len(args) < 2 {

@@ -13,6 +13,7 @@ var Avatar = Command{
 	Description:   "Displays a users profile picture.",
 	Triggers:      []string{"m?avatar", ">av", "m?av"},
 	Usage:         ">av\n>av @internet surfer#0001\n>av 163454407999094786",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 

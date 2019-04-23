@@ -17,6 +17,7 @@ var MyRole = Command{
 	Description:   "Gets information about a custom role, or lets the owner of the role edit its name or color.",
 	Triggers:      []string{"m?myrole"},
 	Usage:         "m?myrole\nm?myrole 163454407999094786\nm?myrole color c0ff33\nm?myrole name kumiko",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	Execute: func(args []string, ctx *service.Context) {
 

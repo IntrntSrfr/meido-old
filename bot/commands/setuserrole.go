@@ -15,6 +15,7 @@ var SetUserRole = Command{
 	Description:   "Sets a users custom role. First provide the user, followed by the role.",
 	Triggers:      []string{"m?setuserrole"},
 	Usage:         "m?setuserrole 163454407999094786 kumiko",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionManageRoles,
 	Execute: func(args []string, ctx *service.Context) {
 
@@ -98,6 +99,7 @@ var ListUserRoles = Command{
 	Description:   "Sets a users custom role. First provide the user, followed by the role.",
 	Triggers:      []string{"m?listuserroles"},
 	Usage:         "m?listuserroles",
+	Category:      Utility,
 	RequiredPerms: discordgo.PermissionManageRoles,
 	Execute: func(args []string, ctx *service.Context) {
 		rows, err := db.Query("SELECT roleid, userid FROM userroles WHERE guildid=$1;", ctx.Guild.ID)
@@ -106,7 +108,7 @@ var ListUserRoles = Command{
 		}
 		defer rows.Close()
 
-		text := fmt.Sprintf("Userroles in %v\n\n\n", ctx.Guild.Name)
+		text := fmt.Sprintf("Userroles in %v\n\n", ctx.Guild.Name)
 		for rows.Next() {
 			count := 0
 			dbur := models.Userrole{}

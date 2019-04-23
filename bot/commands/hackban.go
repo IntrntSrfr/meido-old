@@ -14,6 +14,7 @@ var Hackban = Command{
 	Description:   "Hackbans one or several users. Prunes 7 days.",
 	Triggers:      []string{"m?hackban", "m?hb"},
 	Usage:         "m?hb 123 123 12 31 23 123 ",
+	Category:      Moderation,
 	RequiredPerms: discordgo.PermissionBanMembers,
 	Execute: func(args []string, ctx *service.Context) {
 		if len(args) < 2 {

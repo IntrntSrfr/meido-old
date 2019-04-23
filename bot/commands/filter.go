@@ -17,6 +17,7 @@ var FilterWord = Command{
 	Description:   "Adds a word or phrase to the bots filter, making the bot automatically delete said words or phrases if posted, ignored if user has manage messages permission.",
 	Triggers:      []string{"m?filterword", "m?fw"},
 	Usage:         "m?fw jeff\nm?filterword jeff",
+	Category:      Filter,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -51,6 +52,7 @@ var FilterInfo = Command{
 	Description:   "Shows filter info.",
 	Triggers:      []string{"m?filterinfo", "m?fi"},
 	Usage:         "m?filterinfo\nm?fi",
+	Category:      Filter,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -125,6 +127,7 @@ var FilterWordList = Command{
 	Description:   "Shows filtered words or phrases.",
 	Triggers:      []string{"m?filterwordlist", "m?fwl"},
 	Usage:         "m?filterwordlist\nm?fwl",
+	Category:      Filter,
 	RequiredPerms: discordgo.PermissionSendMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -163,6 +166,7 @@ var ClearFilter = Command{
 	Description:   "Clears the list of filtered words.",
 	Triggers:      []string{"m?clearfilter"},
 	Usage:         "m?clearfilter",
+	Category:      Filter,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -190,6 +194,7 @@ var UseStrikes = Command{
 	Description:   "Toggles strike system.",
 	Triggers:      []string{"m?usestrikes"},
 	Usage:         "m?usestrikes",
+	Category:      Strikes,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -215,6 +220,7 @@ var SetMaxStrikes = Command{
 	Description:   "Sets max strikes. Max 10.",
 	Triggers:      []string{"m?maxstrikes"},
 	Usage:         "m?maxstrikes 5",
+	Category:      Strikes,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
@@ -256,6 +262,7 @@ var FilterIgnoreChannel = Command{
 	Description:   "Sets a channel to be ignored by filter.",
 	Triggers:      []string{"m?filterignorechannel", "m?figch"},
 	Usage:         "m?figch\nm?figch 393558442977263619\nm?filterignorechannel #gamers",
+	Category:      Filter,
 	RequiredPerms: discordgo.PermissionManageMessages,
 	//RequiresOwner: true,
 	Execute: func(args []string, ctx *service.Context) {
