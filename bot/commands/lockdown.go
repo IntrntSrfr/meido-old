@@ -6,65 +6,57 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var Lockdown = Command{
-	Name:          "Lockdown",
-	Description:   "Locks down the current channel, denying the everyonerole send message perms.",
-	Triggers:      []string{"m?lockdown"},
-	Usage:         "m?lockdown",
-	Category:      Moderation,
-	RequiredPerms: discordgo.PermissionManageRoles,
-	Execute: func(args []string, ctx *service.Context) {
-		var erole *discordgo.Role
+func (ch *CommandHandler) lockdown(args []string, ctx *service.Context) {
+	var erole *discordgo.Role
 
-		for _, val := range ctx.Guild.Roles {
-			if val.ID == ctx.Guild.ID {
-				erole = val
-			}
+	for _, val := range ctx.Guild.Roles {
+		if val.ID == ctx.Guild.ID {
+			erole = val
 		}
+	}
 
-		var eperms *discordgo.PermissionOverwrite
+	var eperms *discordgo.PermissionOverwrite
 
-		for _, val := range ctx.Channel.PermissionOverwrites {
-			if val.ID == erole.ID {
-				eperms = val
-			}
+	for _, val := range ctx.Channel.PermissionOverwrites {
+		if val.ID == erole.ID {
+			eperms = val
 		}
+	}
 
-		if erole == nil || eperms == nil {
+	if erole == nil || eperms == nil {
+		return
+	}
+
+	if eperms.Allow&discordgo.PermissionSendMessages == 0 && eperms.Deny&discordgo.PermissionSendMessages == 0 {
+		// DEFAULT
+		err := ctx.Session.ChannelPermissionSet(
+			ctx.Channel.ID,
+			erole.ID,
+			"role",
+			eperms.Allow,
+			eperms.Deny+discordgo.PermissionSendMessages,
+		)
+		if err != nil {
+			ctx.Send("Could not lock channel.")
 			return
 		}
-
-		if eperms.Allow&discordgo.PermissionSendMessages == 0 && eperms.Deny&discordgo.PermissionSendMessages == 0 {
-			// DEFAULT
-			err := ctx.Session.ChannelPermissionSet(
-				ctx.Channel.ID,
-				erole.ID,
-				"role",
-				eperms.Allow,
-				eperms.Deny+discordgo.PermissionSendMessages,
-			)
-			if err != nil {
-				ctx.Send("Could not lock channel.")
-				return
-			}
-			ctx.Send("Channel locked.")
-		} else if eperms.Allow&discordgo.PermissionSendMessages != 0 && eperms.Deny&discordgo.PermissionSendMessages == 0 {
-			// IS ALLOWED
-			err := ctx.Session.ChannelPermissionSet(
-				ctx.Channel.ID,
-				erole.ID,
-				"role",
-				eperms.Allow-discordgo.PermissionSendMessages,
-				eperms.Deny+discordgo.PermissionSendMessages,
-			)
-			if err != nil {
-				ctx.Send("Could not lock channel.")
-				return
-			}
-			ctx.Send("Channel locked")
-		} else if eperms.Allow&discordgo.PermissionSendMessages == 0 && eperms.Deny&discordgo.PermissionSendMessages != 0 {
-			// IS DENIED
-			ctx.Send("Channel already locked")
+		ctx.Send("Channel locked.")
+	} else if eperms.Allow&discordgo.PermissionSendMessages != 0 && eperms.Deny&discordgo.PermissionSendMessages == 0 {
+		// IS ALLOWED
+		err := ctx.Session.ChannelPermissionSet(
+			ctx.Channel.ID,
+			erole.ID,
+			"role",
+			eperms.Allow-discordgo.PermissionSendMessages,
+			eperms.Deny+discordgo.PermissionSendMessages,
+		)
+		if err != nil {
+			ctx.Send("Could not lock channel.")
+			return
 		}
-	},
+		ctx.Send("Channel locked")
+	} else if eperms.Allow&discordgo.PermissionSendMessages == 0 && eperms.Deny&discordgo.PermissionSendMessages != 0 {
+		// IS DENIED
+		ctx.Send("Channel already locked")
+	}
 }

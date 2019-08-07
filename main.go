@@ -14,24 +14,12 @@ import (
 
 	"github.com/intrntsrfr/meido/bot"
 	_ "github.com/lib/pq"
-	"go.uber.org/zap"
 )
 
 func main() {
 	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
+		log.Println(http.ListenAndServe("localhost:6061", nil))
 	}()
-
-	jeff := zap.NewDevelopmentConfig()
-	jeff.OutputPaths = []string{"./logs.txt"}
-	jeff.ErrorOutputPaths = []string{"./logs.txt"}
-	logger, err := jeff.Build()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer logger.Sync()
-	logger.Info("Logger construction succeeded")
 
 	file, err := ioutil.ReadFile("./config.json")
 	if err != nil {
@@ -41,10 +29,10 @@ func main() {
 	var config bot.Config
 	json.Unmarshal(file, &config)
 
-	client, err := bot.NewBot(&config, logger.Named("discord"))
+	// setting up bot
+	client, err := bot.NewBot(&config)
 	if err != nil {
-		fmt.Println(err)
-		return
+		panic(err)
 	}
 	defer client.Close()
 

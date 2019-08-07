@@ -4,40 +4,30 @@ import (
 	"fmt"
 
 	"github.com/intrntsrfr/meido/bot/service"
-
-	"github.com/bwmarrin/discordgo"
 )
 
-var ClearAFK = Command{
-	Name:          "Clearafk",
-	Description:   "Moves AFK users to AFK channel, if there is one.",
-	Triggers:      []string{"m?clearafk"},
-	Usage:         "m?clearafk",
-	Category:      Utility,
-	RequiredPerms: discordgo.PermissionVoiceMoveMembers,
-	Execute: func(args []string, ctx *service.Context) {
-		if ctx.Guild.AfkChannelID == "" {
-			ctx.Send("There is no AFK channel")
-			return
+func (ch *CommandHandler) clearAFK(args []string, ctx *service.Context) {
+	if ctx.Guild.AfkChannelID == "" {
+		ctx.Send("There is no AFK channel")
+		return
+	}
+
+	memberList := []string{}
+
+	for _, val := range ctx.Guild.VoiceStates {
+		if val.SelfMute && val.SelfDeaf && val.ChannelID != ctx.Guild.AfkChannelID {
+			memberList = append(memberList, val.UserID)
 		}
+	}
 
-		memberList := []string{}
+	if len(memberList) < 1 {
+		ctx.Send("There is no one to move.")
+		return
+	}
 
-		for _, val := range ctx.Guild.VoiceStates {
-			if val.SelfMute && val.SelfDeaf && val.ChannelID != ctx.Guild.AfkChannelID {
-				memberList = append(memberList, val.UserID)
-			}
-		}
+	for _, val := range memberList {
+		ctx.Session.GuildMemberMove(ctx.Guild.ID, val, ctx.Guild.AfkChannelID)
+	}
 
-		if len(memberList) < 1 {
-			ctx.Send("There is no one to move.")
-			return
-		}
-
-		for _, val := range memberList {
-			ctx.Session.GuildMemberMove(ctx.Guild.ID, val, ctx.Guild.AfkChannelID)
-		}
-
-		ctx.Send(fmt.Sprintf("Moved %v users.", len(memberList)))
-	},
+	ctx.Send(fmt.Sprintf("Moved %v users.", len(memberList)))
 }

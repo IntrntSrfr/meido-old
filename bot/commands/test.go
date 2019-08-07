@@ -9,6 +9,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+/*
 var Test = Command{
 	Name:          "Test",
 	Description:   "Does epic testing.",
@@ -21,67 +22,49 @@ var Test = Command{
 		ctx.Send(fmt.Sprintf("Top color: #" + FullHex(fmt.Sprintf("%X", UserColor(ctx.Guild, ctx.User.ID)))))
 	},
 }
+*/
+func (ch *CommandHandler) dm(args []string, ctx *service.Context) {
 
-var Dm = Command{
-	Name:          "DM",
-	Description:   "Sends a direct message. Owner only.",
-	Triggers:      []string{"m?dm"},
-	Usage:         "m?dm 163454407999094786 jeff",
-	Category:      Owner,
-	RequiredPerms: discordgo.PermissionSendMessages,
-	RequiresOwner: true,
-	Execute: func(args []string, ctx *service.Context) {
+	if len(args) < 3 {
+		ctx.Send("no")
+		return
+	}
 
-		if len(args) < 3 {
-			ctx.Send("no")
-			return
-		}
+	userch, err := ctx.Session.UserChannelCreate(args[1])
 
-		userch, err := ctx.Session.UserChannelCreate(args[1])
+	if err != nil {
+		return
+	}
 
-		if err != nil {
-			return
-		}
+	if userch.Type != discordgo.ChannelTypeDM {
+		return
+	}
 
-		if userch.Type != discordgo.ChannelTypeDM {
-			return
-		}
-
-		ctx.Session.ChannelMessageSend(userch.ID, strings.Join(args[2:], " "))
-		ctx.Send(fmt.Sprintf("Message sent to %v", userch.Recipients[0]))
-	},
+	ctx.Session.ChannelMessageSend(userch.ID, strings.Join(args[2:], " "))
+	ctx.Send(fmt.Sprintf("Message sent to %v", userch.Recipients[0]))
 }
 
-var Msg = Command{
-	Name:          "Msg",
-	Description:   "Sends a message to a channel. Owner only.",
-	Triggers:      []string{"m?msg"},
-	Usage:         "m?msg 497106582144942101 jeff",
-	Category:      Owner,
-	RequiredPerms: discordgo.PermissionSendMessages,
-	RequiresOwner: true,
-	Execute: func(args []string, ctx *service.Context) {
+func (ch *CommandHandler) msg(args []string, ctx *service.Context) {
 
-		if len(args) < 3 {
-			ctx.Send("no")
-			return
-		}
+	if len(args) < 3 {
+		ctx.Send("no")
+		return
+	}
 
-		var ch string
+	var chID string
 
-		if strings.HasPrefix(args[1], "<#") && strings.HasSuffix(args[1], ">") {
-			ch = args[1]
-			ch = ch[2 : len(ch)-1]
-		} else {
-			ch = args[1]
-		}
+	if strings.HasPrefix(args[1], "<#") && strings.HasSuffix(args[1], ">") {
+		chID = args[1]
+		chID = chID[2 : len(chID)-1]
+	} else {
+		chID = args[1]
+	}
 
-		chn, err := ctx.Session.State.Channel(ch)
-		if err != nil {
-			return
-		}
+	chn, err := ctx.Session.State.Channel(chID)
+	if err != nil {
+		return
+	}
 
-		ctx.Session.ChannelMessageSend(chn.ID, strings.Join(args[2:], " "))
-		ctx.Send(fmt.Sprintf("Message sent to %v [<#%v>]", chn.Name, chn.ID))
-	},
+	ctx.Session.ChannelMessageSend(chn.ID, strings.Join(args[2:], " "))
+	ctx.Send(fmt.Sprintf("Message sent to %v [<#%v>]", chn.Name, chn.ID))
 }

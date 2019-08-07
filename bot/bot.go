@@ -1,54 +1,79 @@
 package bot
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
-
-	"github.com/intrntsrfr/owo"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/intrntsrfr/meido/bot/commands"
 	"github.com/intrntsrfr/meido/bot/events"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
 type Bot struct {
-	logger    *zap.Logger
-	db        *sql.DB
 	client    *discordgo.Session
+	db        *sqlx.DB
+	logger    *zap.Logger
+	eh        *events.EventHandler
 	config    *Config
 	starttime time.Time
-	owoAPI    *owo.OWOClient
 }
 
-func NewBot(Config *Config, Log *zap.Logger) (*Bot, error) {
+func NewBot(Config *Config) (*Bot, error) {
 
+	// creating zap logger
+	z := zap.NewDevelopmentConfig()
+	z.OutputPaths = []string{"./logs.txt"}
+	z.ErrorOutputPaths = []string{"./logs.txt"}
+	log, err := z.Build()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer log.Sync()
+	log.Info("Logger construction succeeded")
+
+	// making client
 	client, err := discordgo.New("Bot " + Config.Token)
 	if err != nil {
 		fmt.Println(err)
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
-	Log.Info("created discord client")
+	log.Info("created discord client")
 
-	psql, err := sql.Open("postgres", Config.ConnectionString)
+	// opening psql connection
+	psql, err := sqlx.Connect("postgres", Config.ConnectionString)
 	if err != nil {
 		fmt.Println("could not connect to db " + err.Error())
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
-	Log.Info("Established postgres connection")
+	log.Info("Established postgres connection")
 
-	OWOApi := owo.NewOWOClient(Config.OwoAPIKey)
+	econfig := &events.Config{
+		OwoToken:      Config.OwoToken,
+		DmLogChannels: Config.DmLogChannels,
+		OwnerIds:      Config.OwnerIds,
+	}
+
+	chconfig := &commands.Config{
+		OwoToken:      Config.OwoToken,
+		DmLogChannels: Config.DmLogChannels,
+		OwnerIds:      Config.OwnerIds,
+	}
+
+	eventHandler := events.NewEventHandler(client, psql, log, econfig, chconfig)
+	eventHandler.Initialize()
 
 	return &Bot{
 		client:    client,
 		db:        psql,
+		logger:    log,
+		eh:        eventHandler,
 		config:    Config,
-		logger:    Log,
 		starttime: time.Now(),
-		owoAPI:    OWOApi,
 	}, nil
 }
 
@@ -59,20 +84,7 @@ func (b *Bot) Close() {
 }
 
 func (b *Bot) Run() error {
-	commands.Initialize(b.client, &b.config.OwnerIds, &b.config.DmLogChannels, b.db, b.owoAPI, b.logger)
-	events.Initialize(b.db, b.logger)
-	b.addHandlers()
+
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	return b.client.Open()
-}
-
-func (b *Bot) addHandlers() {
-	b.client.AddHandler(events.GuildAvailableHandler)
-	b.client.AddHandler(events.GuildRoleDeleteHandler)
-	b.client.AddHandler(events.MemberJoinedHandler)
-	b.client.AddHandler(events.MemberLeaveHandler)
-	b.client.AddHandler(events.MessageUpdateHandler)
-	b.client.AddHandler(events.ReadyHandler)
-	b.client.AddHandler(events.DisconnectHandler)
-	b.client.AddHandler(commands.MessageCreateHandler)
 }

@@ -5,11 +5,12 @@ import (
 	"fmt"
 
 	"github.com/intrntsrfr/meido/bot/models"
+	"go.uber.org/zap"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func GuildAvailableHandler(s *discordgo.Session, g *discordgo.GuildCreate) {
+func (eh *EventHandler) guildAvailableHandler(s *discordgo.Session, g *discordgo.GuildCreate) {
 	/*
 		sqlstr := "INSERT INTO discordusers(userid, username, discriminator, xp, nextxpgaintime, xpexcluded, reputation, cangivereptime) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)"
 
@@ -62,21 +63,20 @@ func GuildAvailableHandler(s *discordgo.Session, g *discordgo.GuildCreate) {
 		fmt.Println(fmt.Sprintf("Loaded %v in %v", g.Name, totalLoadTime.String()))
 	*/
 
-	totalUsers += g.MemberCount
-
-	dbg := models.DiscordGuild{}
-
-	row := db.QueryRow("SELECT guildid FROM discordguilds WHERE guildid = $1;", g.ID)
-
-	err := row.Scan(&dbg.Guildid)
-	if err != nil {
-		logger.Error(err.Error())
-		if err == sql.ErrNoRows {
-			db.Exec("INSERT INTO discordguilds(guildid, usestrikes, maxstrikes) VALUES($1, $2, $3)", g.ID, false, 3)
-			logger.Info(fmt.Sprintf("Inserted new guild: %v [%v]", g.Name, g.ID))
-		}
+	if len(g.Members) != g.MemberCount {
+		s.RequestGuildMembers(g.ID, "", 0)
 	}
 
-	logger.Info(fmt.Sprintf("Loaded %v", g.Name))
+	dbg := &models.DiscordGuild{}
+
+	err := eh.db.Get(dbg, "SELECT guildid FROM discordguilds WHERE guildid = $1;", g.ID)
+	if err != nil && err != sql.ErrNoRows {
+		eh.logger.Error("error", zap.Error(err))
+	} else if err == sql.ErrNoRows {
+		eh.db.Exec("INSERT INTO discordguilds(guildid, usestrikes, maxstrikes) VALUES($1, $2, $3)", g.ID, false, 3)
+		eh.logger.Info(fmt.Sprintf("Inserted new guild: %v [%v]", g.Name, g.ID))
+	}
+
+	eh.logger.Info(fmt.Sprintf("Loaded %v", g.Name))
 	fmt.Println(fmt.Sprintf("Loaded %v", g.Name))
 }

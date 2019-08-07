@@ -1,9 +1,9 @@
 package bot
 
 type Config struct {
-	Token            string   `json:"Token"`
-	OwoAPIKey        string   `json:"OWOToken"`
-	ConnectionString string   `json:"Connectionstring"`
-	DmLogChannels    []string `json:"DmLogChannels"`
-	OwnerIds         []string `json:"OwnerIds"`
+	Token            string   `json:"token"`
+	OwoToken         string   `json:"owo_token"`
+	ConnectionString string   `json:"connection_string"`
+	DmLogChannels    []string `json:"dm_log_channels"`
+	OwnerIds         []string `json:"owner_ids"`
 }

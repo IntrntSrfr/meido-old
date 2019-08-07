@@ -1,0 +1,102 @@
+package commands
+
+import (
+	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/intrntsrfr/meido/bot/service"
+	"github.com/intrntsrfr/owo"
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
+)
+
+// Config settings for the bot
+type Config struct {
+	OwoToken      string
+	DmLogChannels []string
+	OwnerIds      []string
+}
+
+const (
+	dColorRed    = 13107200
+	dColorOrange = 15761746
+	dColorLBlue  = 6410733
+	dColorGreen  = 51200
+	dColorWhite  = 16777215
+)
+
+type CommandType string
+
+const (
+	Filter     CommandType = "Filter"
+	Strikes    CommandType = "Strikes"
+	Moderation CommandType = "Moderation"
+	Fun        CommandType = "Fun"
+	Utility    CommandType = "Utility"
+	Profile    CommandType = "Profile"
+	Owner      CommandType = "Owner"
+)
+
+type Command struct {
+	Name          string
+	Triggers      []string
+	Description   string
+	Usage         string
+	Category      CommandType
+	RequiredPerms int
+	RequiresOwner bool
+	Execute       func(args []string, context *service.Context)
+}
+
+type Commandmap map[string]Command
+
+var permMap = map[int]string{
+	1:          "create instant invite",
+	2:          "kick members",
+	4:          "ban members",
+	8:          "administrator",
+	16:         "manage channels",
+	32:         "manage server",
+	64:         "add reactions",
+	128:        "view audit log",
+	256:        "priority speaker",
+	1024:       "view channel",
+	2048:       "send messages",
+	4096:       "send tts messages",
+	8192:       "manage messages",
+	16384:      "embed links",
+	32768:      "attach files",
+	65536:      "read message history",
+	131072:     "mention everyone",
+	262144:     "use external emojis",
+	1048576:    "connect",
+	2097152:    "speak",
+	4194304:    "mute members",
+	8388608:    "deafen members",
+	16777216:   "move members",
+	33554432:   "use VAD",
+	67108864:   "change nickname",
+	134217728:  "manage nicknames",
+	268435456:  "manage roles",
+	536870912:  "manage webhooks",
+	1073741824: "manage emojis",
+}
+
+var verificationMap = map[int]string{
+	0: "Unrestricted.",
+	1: "Email verification.",
+	2: "Email verification and account must be at least 5 minutes old.",
+	3: "Email verification, account must be at least 5 minutes old and user must have been on server for 10 minutes.",
+	4: "Verified phone to Discord account.",
+}
+
+type CommandHandler struct {
+	client        *discordgo.Session
+	botStartTime  time.Time
+	comms         Commandmap
+	db            *sqlx.DB
+	dmLogChannels []string
+	ownerIds      []string
+	owo           *owo.OWOClient
+	logger        *zap.Logger
+}
