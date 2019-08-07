@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/jmoiron/sqlx"
 )
 
 type Context struct {
@@ -14,7 +13,6 @@ type Context struct {
 	Guild     *discordgo.Guild
 	Channel   *discordgo.Channel
 	User      *discordgo.User
-	Db        *sqlx.DB
 	StartTime time.Time
 }
 

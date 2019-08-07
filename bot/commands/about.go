@@ -52,7 +52,7 @@ func (ch *CommandHandler) about(args []string, ctx *service.Context) {
 	}
 
 	var totalCommands int
-	ctx.Db.Get(&totalCommands, "SELECT COUNT(*) FROM commandlog")
+	ch.db.Get(&totalCommands, "SELECT COUNT(*) FROM commandlog")
 
 	thisTime := time.Now()
 
