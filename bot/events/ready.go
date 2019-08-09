@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/intrntsrfr/meido/bot/database"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -13,9 +15,11 @@ var (
 
 func (eh *EventHandler) readyHandler(s *discordgo.Session, r *discordgo.Ready) {
 
-	timer := time.NewTicker(15 * time.Second)
+	statusTimer := time.NewTicker(time.Second * 15)
+	refreshTimer := time.NewTicker(time.Minute * 10)
+
 	go func() {
-		for range timer.C {
+		for range statusTimer.C {
 			memCount := 0
 			oldMemCount := 0
 			for _, g := range eh.client.State.Guilds {
@@ -33,6 +37,12 @@ func (eh *EventHandler) readyHandler(s *discordgo.Session, r *discordgo.Ready) {
 				oldMemCount = memCount
 				//fmt.Println(fmt.Sprintf("Status update - [%v users]", totalUsers))
 			}
+		}
+	}()
+
+	go func() {
+		for range refreshTimer.C {
+			database.Refresh(eh.db, eh.logger, eh.client.State.Guilds)
 		}
 	}()
 

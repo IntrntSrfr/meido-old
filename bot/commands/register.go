@@ -110,7 +110,7 @@ func (ch *CommandHandler) Initialize() {
 	}
 	var RemoveStrike = Command{
 		Name:          "Remove strike",
-		Description:   "Removes a strike from a user. Use m?strikelog to check a users strike ids. Use the strike ids provided to find the strike you want to remove.",
+		Description:   "Removes a strike from a user. Use strikelog to check a users strike ids. Use the strike ids provided to find the strike you want to remove.",
 		Triggers:      []string{"m?removestrike", "m?rmstrike"},
 		Usage:         "m?removestrike [strike id]\nm?rmstrike 123",
 		Category:      Strikes,

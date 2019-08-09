@@ -64,7 +64,7 @@ func (eh *EventHandler) messageCreateHandler(s *discordgo.Session, m *discordgo.
 		return
 	}
 
-	fmt.Println(fmt.Sprintf("%v - %v - %v: %v", context.Guild.Name, ch.Name, m.Author.String(), m.Content))
+	//fmt.Println(fmt.Sprintf("%v - %v - %v: %v", context.Guild.Name, ch.Name, m.Author.String(), m.Content))
 
 	perms, err := s.State.UserChannelPermissions(m.Author.ID, ch.ID)
 	if err != nil {

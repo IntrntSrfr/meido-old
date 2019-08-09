@@ -21,7 +21,7 @@ func (ch *CommandHandler) myRole(args []string, ctx *service.Context) {
 	if len(args) > 2 {
 
 		ur := &models.Userrole{}
-		err = ch.db.Get("SELECT * FROM userroles WHERE guildid=$1 AND userid=$2", ctx.Guild.ID, ctx.User.ID)
+		err = ch.db.Get(ur, "SELECT * FROM userroles WHERE guildid=$1 AND userid=$2", ctx.Guild.ID, ctx.User.ID)
 		if err != nil && err != sql.ErrNoRows {
 			ctx.Send("there was an error, please try again")
 			ch.logger.Error("error", zap.Error(err))
@@ -116,7 +116,7 @@ func (ch *CommandHandler) myRole(args []string, ctx *service.Context) {
 		}
 
 		ur := &models.Userrole{}
-		err = ch.db.Get("SELECT * FROM userroles WHERE guildid=$1 AND userid=$2", ctx.Guild.ID, target.User.ID)
+		err = ch.db.Get(ur, "SELECT * FROM userroles WHERE guildid=$1 AND userid=$2", ctx.Guild.ID, target.User.ID)
 		if err != nil && err != sql.ErrNoRows {
 			ctx.Send("there was an error, please try again")
 			ch.logger.Error("error", zap.Error(err))
