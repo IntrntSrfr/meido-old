@@ -115,6 +115,14 @@ func (ch *CommandHandler) myRole(args []string, ctx *service.Context) {
 			}
 		}
 
+		if target == nil {
+			target, err = ctx.Session.State.Member(ctx.Guild.ID, ctx.User.ID)
+			if err != nil {
+				//s.ChannelMessageSend(ch.ID, err.Error())
+				return
+			}
+		}
+
 		ur := &models.Userrole{}
 		err = ch.db.Get(ur, "SELECT * FROM userroles WHERE guildid=$1 AND userid=$2", ctx.Guild.ID, target.User.ID)
 		if err != nil && err != sql.ErrNoRows {
