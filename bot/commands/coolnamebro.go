@@ -59,66 +59,57 @@ func (ch *CommandHandler) coolNamebro(args []string, ctx *service.Context) {
 	ctx.Send(fmt.Sprintf("Rename finished. Successful: %v. Failed: %v.", successfulRenames, failedRenames))
 }
 
-/*
-var NiceNameBro = Command{
-	Name:          "Nice name bro",
-	Description:   "Removes the nickname from users with a provided name.",
-	Triggers:      []string{"m?nicenamebro", "m?nnb"},
-	Usage:         "m?nicenamebro my name is shit",
-	Category:      Moderation,
-	RequiredPerms: discordgo.PermissionManageNicknames,
-	Execute: func (args []string, ctx *service.Context) {
+func (ch *CommandHandler) niceNameBro(args []string, ctx *service.Context) {
 
-		if len(args) < 2 {
-			ctx.Send("Please choose a name.")
-			return
-		}
+	if len(args) < 2 {
+		ctx.Send("Please choose a name.")
+		return
+	}
 
-		newName := strings.Join(args[1:], " ")
+	newName := strings.Join(args[1:], " ")
 
-		memberList := []string{}
+	memberList := []string{}
 
-		f, err := os.Open("./bot/misc/ranges.json")
-		if err != nil {
-			return
-		}
-		defer f.Close()
-		ich := charRanges{}
+	f, err := os.Open("./bot/misc/ranges.json")
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	ich := charRanges{}
 
-		json.NewDecoder(f).Decode(&ich)
+	json.NewDecoder(f).Decode(&ich)
 
-		for _, val := range ctx.Guild.Members {
-			if val.Nick != "" {
-				if val.Nick == newName {
-					if !isRenamed(val, &ich) {
-						memberList = append(memberList, val.User.ID)
-					}
+	for _, val := range ctx.Guild.Members {
+		if val.Nick != "" {
+			if val.Nick == newName {
+				if !isRenamed(val, &ich) {
+					memberList = append(memberList, val.User.ID)
 				}
 			}
 		}
+	}
 
-		if len(memberList) < 1 {
-			ctx.Send("There is no one rename.")
-			return
+	if len(memberList) < 1 {
+		ctx.Send("There is no one rename.")
+		return
+	}
+
+	ctx.Send(fmt.Sprintf("Starting rename of %v user(s).", len(memberList)))
+
+	var successfulRenames, failedRenames int
+
+	for _, val := range memberList {
+		err := ctx.Session.GuildMemberNickname(ctx.Guild.ID, val, "")
+		if err != nil {
+			failedRenames++
 		} else {
-			ctx.Send(fmt.Sprintf("Starting rename of %v user(s).", len(memberList)))
+			successfulRenames++
 		}
+	}
 
-		var successfulRenames, failedRenames int
-
-		for _, val := range memberList {
-			err := ctx.Session.GuildMemberNickname(ctx.Guild.ID, val, "")
-			if err != nil {
-				failedRenames++
-			} else {
-				successfulRenames++
-			}
-		}
-
-		ctx.Send(fmt.Sprintf("Rename finished. Successful: %v. Failed: %v.", successfulRenames, failedRenames))
-	},
+	ctx.Send(fmt.Sprintf("Rename finished. Successful: %v. Failed: %v.", successfulRenames, failedRenames))
 }
-*/
+
 func badName(u *discordgo.Member, ich *charRanges) bool {
 	isIllegal := false
 

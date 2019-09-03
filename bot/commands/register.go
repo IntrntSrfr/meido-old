@@ -6,7 +6,7 @@ func (ch *CommandHandler) Initialize() {
 
 	// Filter
 	var FilterWord = Command{
-		Name:          "Filter word",
+		Name:          "FilterWord",
 		Description:   "Adds a word or phrase to the bots filter, making the bot automatically delete said words or phrases if posted, ignored if user has manage messages permission.",
 		Triggers:      []string{"m?filterword", "m?fw"},
 		Usage:         "m?fw jeff\nm?filterword jeff",
@@ -17,7 +17,7 @@ func (ch *CommandHandler) Initialize() {
 	}
 
 	var FilterWordList = Command{
-		Name:          "Filter word list",
+		Name:          "FilterWordList",
 		Description:   "Shows filtered words or phrases.",
 		Triggers:      []string{"m?filterwordlist", "m?fwl"},
 		Usage:         "m?filterwordlist\nm?fwl",
@@ -28,7 +28,7 @@ func (ch *CommandHandler) Initialize() {
 	}
 
 	var FilterInfo = Command{
-		Name:          "Filter info",
+		Name:          "FilterInfo",
 		Description:   "Shows filter info.",
 		Triggers:      []string{"m?filterinfo", "m?fi"},
 		Usage:         "m?filterinfo\nm?fi",
@@ -38,7 +38,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute: ch.filterInfo,
 	}
 	var FilterIgnoreChannel = Command{
-		Name:          "Filter ignore channel",
+		Name:          "FilterIgnoreChannel",
 		Description:   "Sets a channel to be ignored by filter.",
 		Triggers:      []string{"m?filterignorechannel", "m?figch"},
 		Usage:         "m?figch\nm?figch 393558442977263619\nm?filterignorechannel #gamers",
@@ -48,7 +48,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute: ch.filterIgnoreChannel,
 	}
 	var ClearFilter = Command{
-		Name:          "Clear filter",
+		Name:          "ClearFilter",
 		Description:   "Clears the list of filtered words.",
 		Triggers:      []string{"m?clearfilter"},
 		Usage:         "m?clearfilter",
@@ -60,7 +60,7 @@ func (ch *CommandHandler) Initialize() {
 
 	// Strikes
 	var UseStrikes = Command{
-		Name:          "Use strikes",
+		Name:          "UseStrikes",
 		Description:   "Toggles strike system.",
 		Triggers:      []string{"m?usestrikes"},
 		Usage:         "m?usestrikes",
@@ -70,7 +70,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute: ch.useStrikes,
 	}
 	var SetMaxStrikes = Command{
-		Name:          "Set max strikes",
+		Name:          "SetMaxStrikes",
 		Description:   "Sets max strikes. Max 10.",
 		Triggers:      []string{"m?maxstrikes"},
 		Usage:         "m?maxstrikes 5",
@@ -80,7 +80,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute: ch.setMaxStrikes,
 	}
 	var ClearStrikes = Command{
-		Name:          "Clear strikes",
+		Name:          "ClearStrikes",
 		Description:   "Clears the strikes on a user.",
 		Triggers:      []string{"m?clearstrikes", "m?cs"},
 		Usage:         "m?clearstrikes @internet surfer#0001\nm?cs 163454407999094786",
@@ -99,7 +99,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.warn,
 	}
 	var StrikeLog = Command{
-		Name:          "Strike log",
+		Name:          "StrikeLog",
 		Description:   "Shows a users strikes.",
 		Triggers:      []string{"m?strikelog"},
 		Usage:         "m?strikelog 163454407999094786\nm?strikelog @internet surfer#0001",
@@ -109,7 +109,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute: ch.strikeLog,
 	}
 	var RemoveStrike = Command{
-		Name:          "Remove strike",
+		Name:          "RemoveStrike",
 		Description:   "Removes a strike from a user. Use strikelog to check a users strike ids. Use the strike ids provided to find the strike you want to remove.",
 		Triggers:      []string{"m?removestrike", "m?rmstrike"},
 		Usage:         "m?removestrike [strike id]\nm?rmstrike 123",
@@ -158,13 +158,22 @@ func (ch *CommandHandler) Initialize() {
 		}
 	*/
 	var CoolNameBro = Command{
-		Name:          "Cool name bro",
+		Name:          "CoolNameBro",
 		Description:   "Renames attentionseeking nick- or usernames.",
 		Triggers:      []string{"m?coolnamebro", "m?cnb"},
 		Usage:         "m?coolnamebro my name is shit",
 		Category:      Moderation,
 		RequiredPerms: discordgo.PermissionManageNicknames,
 		Execute:       ch.coolNamebro,
+	}
+	var NiceNameBro = Command{
+		Name:          "NiceNameBro",
+		Description:   "Removes the nickname from users with a provided name.",
+		Triggers:      []string{"m?nicenamebro", "m?nnb"},
+		Usage:         "m?nicenamebro my name is shit",
+		Category:      Moderation,
+		RequiredPerms: discordgo.PermissionManageNicknames,
+		Execute:       ch.niceNameBro,
 	}
 	var Kick = Command{
 		Name:          "Kick",
@@ -194,7 +203,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.unlock,
 	}
 	var SetUserRole = Command{
-		Name:          "Set userrole",
+		Name:          "SetUserrole",
 		Description:   "Sets a users custom role. First provide the user, followed by the role.",
 		Triggers:      []string{"m?setuserrole"},
 		Usage:         "m?setuserrole 163454407999094786 kumiko",
@@ -250,7 +259,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.inrole,
 	}
 	var WithNick = Command{
-		Name:          "With nick",
+		Name:          "WithNick",
 		Description:   "Shows how many has an input user- or nickname.",
 		Triggers:      []string{"m?withnick"},
 		Usage:         "m?withnick meido",
@@ -259,7 +268,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.withNick,
 	}
 	var WithTag = Command{
-		Name:          "With tag",
+		Name:          "WithTag",
 		Description:   "Shows how many has an input discriminator.",
 		Triggers:      []string{"m?withtag"},
 		Usage:         "m?withtag <0001/#0001>",
@@ -277,7 +286,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.server,
 	}
 	var ListUserRoles = Command{
-		Name:          "List userroles",
+		Name:          "ListUserroles",
 		Description:   "Sets a users custom role. First provide the user, followed by the role.",
 		Triggers:      []string{"m?listuserroles"},
 		Usage:         "m?listuserroles",
@@ -344,7 +353,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.rep,
 	}
 	var Repleaderboard = Command{
-		Name:          "Rep leaderboard",
+		Name:          "RepLeaderboard",
 		Description:   "Checks the reputation leaderboard.",
 		Triggers:      []string{"m?rplb"},
 		Usage:         "m?rplb",
@@ -353,7 +362,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.repleaderboard,
 	}
 	var XpLeaderboard = Command{
-		Name:          "XP leaderboard",
+		Name:          "XPLeaderboard",
 		Description:   "Checks local leaderboard.",
 		Triggers:      []string{"m?xplb"},
 		Usage:         "m?xplb",
@@ -362,7 +371,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.xpLeaderboard,
 	}
 	var GlobalXpLeaderboard = Command{
-		Name:          "Global XP Leaderboard",
+		Name:          "GlobalXPLeaderboard",
 		Description:   "Checks the global xp leaderboard.",
 		Triggers:      []string{"m?gxplb"},
 		Usage:         "m?gxplb",
@@ -370,7 +379,7 @@ func (ch *CommandHandler) Initialize() {
 		Execute:       ch.globalXpLeaderboard,
 	}
 	var XpIgnoreChannel = Command{
-		Name:          "XP ignore channel",
+		Name:          "XPIgnoreChannel",
 		Description:   "Adds or removes a channel to or from the xp ignored list.",
 		Triggers:      []string{"m?xpignorechannel", "m?xpigch"},
 		Usage:         "m?xpigch\nm?xpigch 123123123123",
@@ -433,7 +442,7 @@ func (ch *CommandHandler) Initialize() {
 	ch.comms.RegisterCommand(Unban)
 	//comms.RegisterCommand(ClearAFK)
 	ch.comms.RegisterCommand(CoolNameBro)
-	//ch.comms.RegisterCommand(NiceNameBro)
+	ch.comms.RegisterCommand(NiceNameBro)
 	ch.comms.RegisterCommand(Kick)
 	ch.comms.RegisterCommand(Lockdown)
 	ch.comms.RegisterCommand(Unlock)
