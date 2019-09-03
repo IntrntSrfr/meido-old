@@ -23,6 +23,12 @@ func (ch *CommandHandler) avatar(args []string, ctx *service.Context) {
 				return
 			}
 		}
+	} else {
+		targetUser, err = ctx.Session.User(ctx.User.ID)
+		if err != nil {
+			//s.ChannelMessageSend(ch.ID, err.Error())
+			return
+		}
 	}
 
 	if targetUser == nil {
