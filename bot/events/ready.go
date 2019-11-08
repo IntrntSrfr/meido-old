@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/intrntsrfr/meido/bot/database"
-
 	"github.com/bwmarrin/discordgo"
+	"github.com/intrntsrfr/meido/bot/helpers"
 )
 
 var (
@@ -42,7 +41,7 @@ func (eh *EventHandler) readyHandler(s *discordgo.Session, r *discordgo.Ready) {
 
 	go func() {
 		for range refreshTimer.C {
-			database.Refresh(eh.db, eh.logger, eh.client.State.Guilds)
+			helpers.Refresh(eh.db, eh.logger, eh.client.State.Guilds)
 		}
 	}()
 

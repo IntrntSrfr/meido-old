@@ -1,4 +1,4 @@
-package database
+package helpers
 
 import (
 	"time"
@@ -16,6 +16,10 @@ func Refresh(db *sqlx.DB, z *zap.Logger, guilds []*discordgo.Guild) error {
 	z.Info("running refresh")
 
 	for _, g := range guilds {
+		if g.Unavailable {
+			continue
+		}
+
 		userroles := []models.Userrole{}
 
 		err := db.Select(&userroles, "SELECT * FROM userroles WHERE guildid=$1", g.ID)
