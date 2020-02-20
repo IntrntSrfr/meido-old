@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"os"
 	"sort"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 
 func NewCommandHandler(s *discordgo.Session, DB *sqlx.DB, Logger *zap.Logger, cc *Config) *CommandHandler {
 
-	o := owo.NewOWOClient(cc.OwoToken)
+	o := owo.NewClient(cc.OwoToken)
 
 	return &CommandHandler{
 		client:        s,
@@ -42,7 +41,7 @@ func (ch *CommandHandler) GetCommandMap() Commandmap {
 func (cmap *Commandmap) RegisterCommand(cmd Command) {
 	if cmd, ok := (*cmap)[cmd.Name]; ok {
 		fmt.Println("Conflicting Commands.", cmd.Name, (*cmap)[cmd.Name])
-		os.Exit(0)
+		panic(fmt.Sprint("Conflicting Commands.", cmd.Name, (*cmap)[cmd.Name]))
 	}
 
 	(*cmap)[cmd.Name] = cmd

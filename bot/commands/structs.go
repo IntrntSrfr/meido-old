@@ -97,6 +97,6 @@ type CommandHandler struct {
 	db            *sqlx.DB
 	dmLogChannels []string
 	ownerIds      []string
-	owo           *owo.OWOClient
+	owo           *owo.Client
 	logger        *zap.Logger
 }

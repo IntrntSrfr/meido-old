@@ -110,7 +110,6 @@ func (ch *CommandHandler) listUserRoles(args []string, ctx *service.Context) {
 			text += fmt.Sprintf("Role #%v: %v (%v) | Bound user: %v (%v)\n", count, role.Name, role.ID, mem.User.String(), mem.User.ID)
 		}
 		count++
-
 	}
 
 	link, err := ch.owo.Upload(text)

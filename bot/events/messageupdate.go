@@ -41,8 +41,5 @@ func (eh *EventHandler) messageUpdateHandler(s *discordgo.Session, m *discordgo.
 		return
 	}
 
-	isIllegal := eh.checkFilter(&context, &perms, m.Message)
-	if isIllegal {
-		return
-	}
+	eh.checkFilter(&context, &perms, m.Message)
 }

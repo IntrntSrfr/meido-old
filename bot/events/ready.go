@@ -18,9 +18,9 @@ func (eh *EventHandler) readyHandler(s *discordgo.Session, r *discordgo.Ready) {
 	refreshTimer := time.NewTicker(time.Minute * 10)
 
 	go func() {
+		memCount := 0
+		oldMemCount := 0
 		for range statusTimer.C {
-			memCount := 0
-			oldMemCount := 0
 			for _, g := range eh.client.State.Guilds {
 				memCount += g.MemberCount
 			}

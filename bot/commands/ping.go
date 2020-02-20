@@ -17,7 +17,7 @@ func (ch *CommandHandler) ping(args []string, ctx *service.Context) {
 
 	receiveTime := time.Now()
 
-	botLatency := receiveTime.Sub(ctx.StartTime)
+	botLatency := sendTime.Sub(ctx.StartTime)
 	latency := receiveTime.Sub(sendTime)
 
 	ctx.Session.ChannelMessageEdit(ctx.Message.ChannelID, msg.ID, fmt.Sprintf("Pong!\nDiscord delay: %v\nBot delay: %v", latency.String(), botLatency.String()))
